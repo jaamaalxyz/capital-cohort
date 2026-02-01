@@ -68,6 +68,36 @@ export default {
     selectLanguage: 'ভাষা নির্বাচন করুন',
     searchLanguages: 'ভাষা অনুসন্ধান করুন...',
     noLanguagesFound: 'কোনো ভাষা পাওয়া যায়নি',
+    location: 'অবস্থান',
+    updateLocation: 'অবস্থান আপডেট করুন',
+    allowLocation: 'অবস্থানের অনুমতি দিন',
+    locating: 'অবস্থান খোঁজা হচ্ছে...',
+    noLocation: 'কোনো অবস্থান নির্বাচন করা হয়নি',
+  },
+
+  // Onboarding
+  onboarding: {
+    welcome: 'ক্যাপিটাল কোহর্ট-এ স্বাগতম',
+    welcomeSubtitle: 'আর্থিক স্বাধীনতার জন্য আপনার প্রফেশনাল সঙ্গী।',
+    continue: 'চালিয়ে যান',
+    back: 'পিছনে',
+    locationTitle: 'আপনি কোথায় আছেন?',
+    locationSubtitle:
+      'আপনার জন্য সেরা ভাষা এবং মুদ্রার পরামর্শ দিতে আমরা আপনার অবস্থান ব্যবহার করি।',
+    languageTitle: 'ভাষার পছন্দসমূহ',
+    languageSubtitle:
+      'আপনার পছন্দের ভাষা নির্বাচন করুন যা আপনার কাছে নিজের মনে হয়।',
+    currencyTitle: 'মুদ্রা সেটিংস',
+    currencySubtitle: 'আপনার খরচের হিসাব রাখতে আপনার প্রাথমিক মুদ্রা সেট করুন।',
+    incomeTitle: 'মাসিক আয়',
+    incomeSubtitle:
+      'চলুন আপনার বাজেটের ভিত্তি সেট করি। আপনি প্রতি মাসে কত আয় করেন?',
+    allSet: 'সব তৈরি আছে!',
+    allSetSubtitle:
+      'আমরা আপনার পছন্দ অনুযায়ী আপনার কাজের ক্ষেত্র কনফিগার করেছি। শুরু করতে প্রস্তুত?',
+    getStarted: 'শুরু করি',
+    allowLocation: 'অবস্থান শনাক্ত করুন',
+    skipLocation: 'ম্যানুয়ালি সেট করুন',
   },
 
   // Add Expense Screen

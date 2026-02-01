@@ -12,8 +12,11 @@ import {
   FlatList,
   Modal,
   ListRenderItem,
+  ActivityIndicator,
 } from 'react-native';
+import * as Location from 'expo-location';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { useBudget } from '../../context/BudgetContext';
 import { AmountInput } from '../../components/AmountInput';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -38,8 +41,10 @@ import {
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
-  const { state, setIncome, setCurrency, resetAll } = useBudget();
+  const router = useRouter();
+  const { state, setIncome, setCurrency, setLocation, resetAll } = useBudget();
   const [incomeValue, setIncomeValue] = useState(state.monthlyIncome);
+  const [isLocating, setIsLocating] = useState(false);
   const [currencyPickerVisible, setCurrencyPickerVisible] = useState(false);
   const [currencySearch, setCurrencySearch] = useState('');
   const [languagePickerVisible, setLanguagePickerVisible] = useState(false);
@@ -98,6 +103,7 @@ export default function SettingsScreen() {
         onPress: () => {
           resetAll();
           setIncomeValue(0);
+          router.replace('/onboarding');
         },
       },
     ]);
@@ -115,6 +121,40 @@ export default function SettingsScreen() {
   const handleLanguageChange = async (langCode: LanguageCode) => {
     await changeLanguage(langCode);
     setCurrentLang(langCode);
+  };
+
+  const handleGetLocation = async () => {
+    setIsLocating(true);
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Denied',
+          'Please enable location permissions in settings.',
+        );
+        setIsLocating(false);
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      const [address] = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      setLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        address: address?.name || undefined,
+        city: address?.city || undefined,
+        country: address?.country || undefined,
+      });
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Could not get your location.');
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   const openCurrencyPicker = () => {
@@ -340,6 +380,47 @@ export default function SettingsScreen() {
                 </Text>
               </View>
               <Text style={styles.editIcon}>✎</Text>
+            </Pressable>
+          </View>
+
+          {/* Location Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('settings.location')}</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.currencyDisplay,
+                pressed && styles.currencyDisplayPressed,
+                isLocating && styles.disabled,
+              ]}
+              onPress={handleGetLocation}
+              disabled={isLocating}
+            >
+              <View style={styles.currencyDisplayLeft}>
+                {state.location ? (
+                  <>
+                    <Text style={styles.currencyDisplayText}>
+                      📍 {state.location.city}, {state.location.country}
+                    </Text>
+                    <Text style={styles.currencyDisplayName}>
+                      {state.location.address || t('settings.updateLocation')}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.currencyDisplayText}>
+                      {t('settings.noLocation')}
+                    </Text>
+                    <Text style={styles.currencyDisplayName}>
+                      {t('settings.allowLocation')}
+                    </Text>
+                  </>
+                )}
+              </View>
+              {isLocating ? (
+                <ActivityIndicator size="small" color={COLORS.needs} />
+              ) : (
+                <Text style={styles.editIcon}>✎</Text>
+              )}
             </Pressable>
           </View>
 
@@ -602,6 +683,9 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.h2,
     color: COLORS.textSecondary,
     transform: [{ rotate: '90deg' }],
+  },
+  disabled: {
+    opacity: 0.6,
   },
   // Language Section
   languageContainer: {

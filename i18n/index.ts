@@ -5,28 +5,18 @@ import * as Localization from 'expo-localization';
 
 import en from './locales/en';
 import bn from './locales/bn';
-
-const LANGUAGE_KEY = '@app_language';
+import { STORAGE_KEYS } from '../constants/theme';
+import { AppLanguage, LanguageCode } from '../types';
 
 export const resources = {
-  en: { translation: en },
-  bn: { translation: bn },
+  [AppLanguage.EN]: { translation: en },
+  [AppLanguage.BN]: { translation: bn },
 } as const;
 
 export const supportedLanguages = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español' },
-  { code: 'fr', name: 'French', nativeName: 'Français' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch' },
-  { code: 'zh', name: 'Chinese', nativeName: '中文' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
-  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
-  { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
-  { code: 'bn', name: 'Bengali', nativeName: 'বাংলা' },
-  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
+  { code: AppLanguage.EN, name: 'English', nativeName: 'English' },
+  { code: AppLanguage.BN, name: 'Bengali', nativeName: 'বাংলা' },
 ] as const;
-
-export type LanguageCode = (typeof supportedLanguages)[number]['code'];
 
 const getDeviceLanguage = (): LanguageCode => {
   const deviceLocale = Localization.getLocales()[0]?.languageCode ?? 'en';
@@ -40,7 +30,7 @@ const initI18n = async () => {
   let savedLanguage: string | null = null;
 
   try {
-    savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
+    savedLanguage = await AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE);
   } catch (error) {
     console.error('Error loading language preference:', error);
   }
@@ -64,7 +54,7 @@ const initI18n = async () => {
 
 export const changeLanguage = async (language: LanguageCode) => {
   try {
-    await AsyncStorage.setItem(LANGUAGE_KEY, language);
+    await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
     await i18n.changeLanguage(language);
   } catch (error) {
     console.error('Error changing language:', error);

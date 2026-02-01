@@ -6,7 +6,13 @@ import React, {
   useMemo,
   ReactNode,
 } from 'react';
-import { BudgetState, BudgetAction, Expense, BudgetSummary } from '../types';
+import {
+  BudgetState,
+  BudgetAction,
+  Expense,
+  BudgetSummary,
+  LocationPreference,
+} from '../types';
 import { getCurrentMonth } from '../utils/formatters';
 import {
   saveIncome,
@@ -16,6 +22,10 @@ import {
   clearAllData,
   saveCurrency,
   loadCurrency,
+  saveLocation,
+  loadLocation,
+  saveOnboardingCompleted,
+  loadOnboardingCompleted,
 } from '../utils/storage';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
 import {
@@ -29,6 +39,8 @@ const initialState: BudgetState = {
   currentMonth: getCurrentMonth(),
   isLoading: true,
   currency: DEFAULT_CURRENCY,
+  location: undefined,
+  onboardingCompleted: false,
 };
 
 function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
@@ -50,8 +62,16 @@ function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
       return { ...state, currentMonth: action.payload };
     case 'SET_CURRENCY':
       return { ...state, currency: action.payload };
+    case 'SET_LOCATION':
+      return { ...state, location: action.payload };
+    case 'COMPLETE_ONBOARDING':
+      return { ...state, onboardingCompleted: true };
     case 'RESET_ALL':
-      return { ...initialState, isLoading: false, currentMonth: getCurrentMonth() };
+      return {
+        ...initialState,
+        isLoading: false,
+        currentMonth: getCurrentMonth(),
+      };
     default:
       return state;
   }
@@ -66,6 +86,8 @@ interface BudgetContextType {
   deleteExpense: (id: string) => void;
   setMonth: (month: string) => void;
   setCurrency: (currency: string) => void;
+  setLocation: (location: LocationPreference | undefined) => void;
+  completeOnboarding: () => void;
   resetAll: () => void;
 }
 
@@ -77,15 +99,29 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   // Load data on mount
   useEffect(() => {
     async function loadData() {
-      const [income, expenses, currency] = await Promise.all([
-        loadIncome(),
-        loadExpenses(),
-        loadCurrency(),
-      ]);
-      dispatch({
-        type: 'LOAD_DATA',
-        payload: { monthlyIncome: income, expenses, currency },
-      });
+      try {
+        const [income, expenses, currency, location, onboardingCompleted] =
+          await Promise.all([
+            loadIncome(),
+            loadExpenses(),
+            loadCurrency(),
+            loadLocation(),
+            loadOnboardingCompleted(),
+          ]);
+        dispatch({
+          type: 'LOAD_DATA',
+          payload: {
+            monthlyIncome: income,
+            expenses,
+            currency,
+            location,
+            onboardingCompleted,
+          },
+        });
+      } catch (error) {
+        console.error('[DEBUG] BudgetProvider: Error loading data:', error);
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
     }
     loadData();
   }, []);
@@ -111,14 +147,28 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }
   }, [state.currency, state.isLoading]);
 
+  // Save location when it changes
+  useEffect(() => {
+    if (!state.isLoading) {
+      saveLocation(state.location);
+    }
+  }, [state.location, state.isLoading]);
+
+  // Save onboarding status when it changes
+  useEffect(() => {
+    if (!state.isLoading) {
+      saveOnboardingCompleted(state.onboardingCompleted);
+    }
+  }, [state.onboardingCompleted, state.isLoading]);
+
   const currentMonthExpenses = useMemo(
     () => getExpensesForMonth(state.expenses, state.currentMonth),
-    [state.expenses, state.currentMonth]
+    [state.expenses, state.currentMonth],
   );
 
   const summary = useMemo(
     () => calculateBudgetSummary(state.monthlyIncome, currentMonthExpenses),
-    [state.monthlyIncome, currentMonthExpenses]
+    [state.monthlyIncome, currentMonthExpenses],
   );
 
   const setIncome = (income: number) => {
@@ -141,6 +191,14 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_CURRENCY', payload: currency });
   };
 
+  const setLocation = (location: LocationPreference | undefined) => {
+    dispatch({ type: 'SET_LOCATION', payload: location });
+  };
+
+  const completeOnboarding = () => {
+    dispatch({ type: 'COMPLETE_ONBOARDING' });
+  };
+
   const resetAll = async () => {
     await clearAllData();
     dispatch({ type: 'RESET_ALL' });
@@ -157,6 +215,8 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         deleteExpense,
         setMonth,
         setCurrency,
+        setLocation,
+        completeOnboarding,
         resetAll,
       }}
     >

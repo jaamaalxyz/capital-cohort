@@ -68,6 +68,35 @@ export default {
     selectLanguage: 'Select Language',
     searchLanguages: 'Search languages...',
     noLanguagesFound: 'No languages found',
+    location: 'LOCATION',
+    updateLocation: 'Update Location',
+    allowLocation: 'Allow Location Access',
+    locating: 'Locating...',
+    noLocation: 'No location selected',
+  },
+
+  // Onboarding
+  onboarding: {
+    welcome: 'Welcome to Capital Cohort',
+    welcomeSubtitle: 'Your professional-grade companion for financial freedom.',
+    continue: 'Continue',
+    back: 'Back',
+    locationTitle: 'Where are you?',
+    locationSubtitle:
+      'We use your location to suggest the best language and currency for you.',
+    languageTitle: 'Language Preferences',
+    languageSubtitle: 'Choose the language that feels most like home.',
+    currencyTitle: 'Currency Settings',
+    currencySubtitle: 'Set your primary currency for tracking expenses.',
+    incomeTitle: 'Monthly Income',
+    incomeSubtitle:
+      "Let's set your budget foundation. How much do you earn each month?",
+    allSet: 'Everything is Ready!',
+    allSetSubtitle:
+      'We have configured your workspace based on your preferences. Ready to start?',
+    getStarted: 'Get Started',
+    allowLocation: 'Detect Location',
+    skipLocation: 'Set Manually',
   },
 
   // Add Expense Screen

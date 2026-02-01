@@ -1,3 +1,16 @@
+export enum AppLanguage {
+  EN = 'en',
+  BN = 'bn',
+}
+
+export type LanguageCode = 'en' | 'bn';
+
+export interface Currency {
+  code: string;
+  symbol: string;
+  name: string;
+}
+
 export type Category = 'needs' | 'wants' | 'savings';
 
 export interface Expense {
@@ -34,12 +47,29 @@ export interface BudgetSummary {
   savings: CategoryBudget;
 }
 
+export interface LocationPreference {
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  city?: string;
+  district?: string;
+  region?: string;
+  country?: string;
+}
+
+export interface CountryConfig {
+  language: LanguageCode;
+  currency: string;
+}
+
 export interface BudgetState {
   monthlyIncome: number;
   expenses: Expense[];
   currentMonth: string; // YYYY-MM format
   isLoading: boolean;
   currency: string; // ISO 4217 currency code (e.g., 'USD')
+  location?: LocationPreference;
+  onboardingCompleted: boolean;
 }
 
 export type BudgetAction =
@@ -50,6 +80,8 @@ export type BudgetAction =
   | { type: 'LOAD_DATA'; payload: Partial<BudgetState> }
   | { type: 'SET_MONTH'; payload: string }
   | { type: 'SET_CURRENCY'; payload: string }
+  | { type: 'SET_LOCATION'; payload: LocationPreference | undefined }
+  | { type: 'COMPLETE_ONBOARDING' }
   | { type: 'RESET_ALL' };
 
 export interface ValidationResult {

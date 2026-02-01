@@ -18,7 +18,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.jaamaalxyz.capitalcohort",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "We use your location to provide localized insights and currency suggestions."
       }
     },
     "android": {
@@ -27,7 +28,8 @@
         "backgroundColor": "#4CAF50"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.jaamaalxyz.capitalcohort"
+      "package": "com.jaamaalxyz.capitalcohort",
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -35,7 +37,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Capital Cohort to use your location."
+        }
+      ]
     ],
     "owner": "jaamaalxyz",
     "extra": {

@@ -1,8 +1,4 @@
-export interface Currency {
-  code: string;
-  symbol: string;
-  name: string;
-}
+import { Currency } from '../types';
 
 export const CURRENCIES: Currency[] = [
   // Americas

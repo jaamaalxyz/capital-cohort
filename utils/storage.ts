@@ -39,19 +39,6 @@ export async function loadExpenses(): Promise<Expense[]> {
   }
 }
 
-export async function clearAllData(): Promise<void> {
-  try {
-    await AsyncStorage.multiRemove([
-      STORAGE_KEYS.INCOME,
-      STORAGE_KEYS.EXPENSES,
-      STORAGE_KEYS.CURRENT_MONTH,
-      STORAGE_KEYS.CURRENCY,
-    ]);
-  } catch (error) {
-    console.error('Error clearing data:', error);
-  }
-}
-
 export async function saveCurrency(currency: string): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.CURRENCY, currency);
@@ -67,5 +54,69 @@ export async function loadCurrency(): Promise<string> {
   } catch (error) {
     console.error('Error loading currency:', error);
     return DEFAULT_CURRENCY;
+  }
+}
+
+export async function saveLocation(location: any): Promise<void> {
+  try {
+    if (location === undefined || location === null) {
+      await AsyncStorage.removeItem(STORAGE_KEYS.LOCATION);
+    } else {
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.LOCATION,
+        JSON.stringify(location),
+      );
+    }
+  } catch (error) {
+    console.error('Error saving location:', error);
+  }
+}
+
+export async function loadLocation(): Promise<any> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.LOCATION);
+    return value ? JSON.parse(value) : undefined;
+  } catch (error) {
+    console.error('Error loading location:', error);
+    return undefined;
+  }
+}
+
+export async function saveOnboardingCompleted(
+  completed: boolean,
+): Promise<void> {
+  try {
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.ONBOARDING_COMPLETED,
+      JSON.stringify(completed),
+    );
+  } catch (error) {
+    console.error('Error saving onboarding status:', error);
+  }
+}
+
+export async function loadOnboardingCompleted(): Promise<boolean> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETED);
+    return value ? JSON.parse(value) : false;
+  } catch (error) {
+    console.error('Error loading onboarding status:', error);
+    return false;
+  }
+}
+
+export async function clearAllData(): Promise<void> {
+  try {
+    await AsyncStorage.multiRemove([
+      STORAGE_KEYS.INCOME,
+      STORAGE_KEYS.EXPENSES,
+      STORAGE_KEYS.CURRENT_MONTH,
+      STORAGE_KEYS.CURRENCY,
+      STORAGE_KEYS.ONBOARDING_COMPLETED,
+      STORAGE_KEYS.LOCATION,
+      STORAGE_KEYS.LANGUAGE,
+    ]);
+  } catch (error) {
+    console.error('Error clearing data:', error);
   }
 }
