@@ -1,8 +1,11 @@
-# Budget Tracker App - Planning Document
+# Capital Cohort - Planning Document
+
+**Personalize money management for all**
 
 ## Overview
 
-A simple, offline-first mobile app for personal monthly budget tracking following the **50/30/20 rule**:
+A personalize, offline-first React Native mobile app for monthly budgeting, investment and all about your financial tracking following the **50/30/20 rule** of core financial literacy for all guide:
+
 - **50%** for Needs (essentials: rent, utilities, groceries, insurance)
 - **30%** for Wants (non-essentials: entertainment, dining out, hobbies)
 - **20%** for Savings (savings, investments, debt repayment)
@@ -64,6 +67,7 @@ A simple, offline-first mobile app for personal monthly budget tracking followin
 ## Project Timeline
 
 ### Phase 1 - MVP
+
 1. Project setup and folder structure
 2. Data models and storage layer
 3. Home/Dashboard screen

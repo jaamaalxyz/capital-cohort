@@ -1,32 +1,41 @@
 {
   "expo": {
-    "name": "Budget Tracker",
-    "slug": "budget-tracker",
+    "name": "Capital Cohort",
+    "description": "Personalize money management for all",
+    "slug": "capital-cohort",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "budget-tracker",
+    "scheme": "capital-cohort",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#4CAF50"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jaamaalxyz.capitalcohort"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#4CAF50"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.jaamaalxyz.capitalcohort"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": ["expo-router"]
+    "plugins": ["expo-router"],
+    "owner": "jaamaalxyz",
+    "extra": {
+      "eas": {
+        "projectId": "cc521750-c682-4111-8b9c-71596e457f85"
+      }
+    }
   }
 }

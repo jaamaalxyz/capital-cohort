@@ -1,22 +1,25 @@
-# Budget Tracker
+# Capital Cohort
 
-A simple, offline-first mobile app for personal monthly budget tracking following the **50/30/20 rule**.
+**Personalize money management for all**
+
+A personalize, offline-first React Native mobile app for monthly budgeting, investment and all about your financial tracking following the **50/30/20 rule** of core financial literacy for all guide.
 
 ## The 50/30/20 Rule
 
 A popular budgeting framework that divides your after-tax income into three categories:
 
-| Category | Percentage | Purpose |
-|----------|------------|---------|
-| 🏠 **Needs** | 50% | Essential expenses: rent, utilities, groceries, insurance, transportation |
-| 🎮 **Wants** | 30% | Non-essentials: entertainment, dining out, hobbies, subscriptions |
-| 💰 **Savings** | 20% | Savings, investments, emergency fund, debt repayment |
+| Category       | Percentage | Purpose                                                                   |
+| -------------- | ---------- | ------------------------------------------------------------------------- |
+| 🏠 **Needs**   | 50%        | Essential expenses: rent, utilities, groceries, insurance, transportation |
+| 🎮 **Wants**   | 30%        | Non-essentials: entertainment, dining out, hobbies, subscriptions         |
+| 💰 **Savings** | 20%        | Savings, investments, emergency fund, debt repayment                      |
 
 ## Features
 
 - **Dashboard** - View your monthly budget at a glance with visual progress bars
 - **Expense Tracking** - Quickly add expenses categorized as Needs, Wants, or Savings
 - **Expense History** - Browse and filter expenses by category
+- **Multi-Currency Support** - Choose from 150+ world currencies
 - **Month Navigation** - View budgets from previous months
 - **Offline-First** - All data stored locally, no internet required
 - **No Account Required** - Zero setup friction, start tracking immediately
@@ -34,7 +37,7 @@ A popular budgeting framework that divides your after-tax income into three cate
 │                     │  │  🎮 Netflix    $15  │  │  30% → $1,500       │
 │  🏠 NEEDS (50%)     │  │                     │  │  20% → $1,000       │
 │  ████████░░ $1,850  │  │  Jan 10, 2024       │  │                     │
-│  of $2,500          │  │  🏠 Electric   $85  │  │  [Reset All Data]   │
+│  of $2,500          │  │  🏠 Electric   $85  │  │  Currency: $ USD    │
 │                     │  │                     │  │                     │
 │  🎮 WANTS (30%)     │  └─────────────────────┘  └─────────────────────┘
 │  ████░░░░░░ $650    │
@@ -66,17 +69,20 @@ A popular budgeting framework that divides your after-tax income into three cate
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/jaamaalxyz/capital-cohort.git
    cd capital-cohort
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Start the development server:
+
    ```bash
    npm start
    ```
@@ -115,7 +121,8 @@ A popular budgeting framework that divides your after-tax income into three cate
 │   ├── storage.ts           # AsyncStorage operations
 │   └── validation.ts        # Input validation
 ├── constants/               # App constants
-│   └── theme.ts             # Colors, spacing, typography
+│   ├── theme.ts             # Colors, spacing, typography
+│   └── currencies.ts        # 150+ world currencies
 ├── docs/                    # Planning documentation
 │   ├── ARCHITECTURE.md      # Technical architecture
 │   ├── DATA_MODELS.md       # Data structures
@@ -125,21 +132,22 @@ A popular budgeting framework that divides your after-tax income into three cate
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm start` | Start the Expo development server |
+| Command           | Description                        |
+| ----------------- | ---------------------------------- |
+| `npm start`       | Start the Expo development server  |
 | `npm run android` | Start and open on Android emulator |
-| `npm run ios` | Start and open on iOS simulator |
-| `npm run web` | Start and open in web browser |
+| `npm run ios`     | Start and open on iOS simulator    |
+| `npm run web`     | Start and open in web browser      |
 
 ## Data Storage
 
 All data is stored locally on your device using AsyncStorage:
 
-| Key | Description |
-|-----|-------------|
-| `@budget_income` | Monthly income amount (in cents) |
-| `@budget_expenses` | Array of all expense records |
+| Key                | Description                       |
+| ------------------ | --------------------------------- |
+| `@budget_income`   | Monthly income amount (in cents)  |
+| `@budget_expenses` | Array of all expense records      |
+| `@budget_currency` | Selected currency code (ISO 4217) |
 
 Data persists between app sessions and works completely offline.
 
