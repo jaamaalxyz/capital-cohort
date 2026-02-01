@@ -1,16 +1,19 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/theme';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORS.needs,
         tabBarInactiveTintColor: COLORS.textSecondary,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, { height: 60 + insets.bottom, paddingBottom: insets.bottom }],
         tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
@@ -50,13 +53,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderTopColor: COLORS.border,
     paddingTop: 8,
-    height: 60,
   },
   tabBarLabel: {
     fontSize: 12,
     fontWeight: '500',
   },
   tabIcon: {
-    fontSize: 24,
+    fontSize: 20,
   },
 });

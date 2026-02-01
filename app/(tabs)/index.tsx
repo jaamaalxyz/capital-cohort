@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useBudget } from '../../context/BudgetContext';
 import { BudgetCard } from '../../components/BudgetCard';
+import { ScreenContainer } from '../../components/ScreenContainer';
 import { COLORS, SPACING, FONT_SIZE } from '../../constants/theme';
 import {
   formatCurrency,
@@ -34,7 +35,7 @@ export default function DashboardScreen() {
   const isCurrentMonth = state.currentMonth === getCurrentMonth();
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -117,15 +118,11 @@ export default function DashboardScreen() {
       >
         <Text style={styles.fabText}>+</Text>
       </Pressable>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

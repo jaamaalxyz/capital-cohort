@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useBudget } from '../../context/BudgetContext';
 import { ExpenseItem } from '../../components/ExpenseItem';
+import { ScreenContainer } from '../../components/ScreenContainer';
 import { Category, Expense } from '../../types';
 import { COLORS, SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../../constants/theme';
 import { formatDate, formatMonth } from '../../utils/formatters';
@@ -71,7 +72,7 @@ export default function ExpensesScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Expenses</Text>
@@ -127,18 +128,13 @@ export default function ExpensesScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
   header: {
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
     paddingBottom: SPACING.sm,
   },
   title: {
