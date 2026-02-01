@@ -1,8 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ProgressBar } from './ProgressBar';
 import { CategoryBudget, Category } from '../types';
-import { COLORS, SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../constants/theme';
+import {
+  COLORS,
+  SPACING,
+  FONT_SIZE,
+  CATEGORY_CONFIG,
+} from '../constants/theme';
 import { formatCurrency } from '../utils/formatters';
 
 interface BudgetCardProps {
@@ -12,7 +18,13 @@ interface BudgetCardProps {
   onPress?: () => void;
 }
 
-export function BudgetCard({ category, budget, currencySymbol = '$', onPress }: BudgetCardProps) {
+export function BudgetCard({
+  category,
+  budget,
+  currencySymbol = '$',
+  onPress,
+}: BudgetCardProps) {
+  const { t } = useTranslation();
   const config = CATEGORY_CONFIG[category];
   const percentageDisplay = Math.round(budget.percentage);
 
@@ -24,7 +36,8 @@ export function BudgetCard({ category, budget, currencySymbol = '$', onPress }: 
       <View style={styles.header}>
         <Text style={styles.icon}>{config.icon}</Text>
         <Text style={styles.label}>
-          {config.label.toUpperCase()} ({Math.round(config.percentage * 100)}%)
+          {t(`categories.${category}`).toUpperCase()} (
+          {Math.round(config.percentage * 100)}%)
         </Text>
       </View>
 
@@ -35,17 +48,20 @@ export function BudgetCard({ category, budget, currencySymbol = '$', onPress }: 
           isOverBudget={budget.isOverBudget}
         />
         <View style={styles.amountRow}>
-          <Text style={[styles.spent, budget.isOverBudget && styles.overBudget]}>
+          <Text
+            style={[styles.spent, budget.isOverBudget && styles.overBudget]}
+          >
             {formatCurrency(budget.spent, currencySymbol)}
           </Text>
           <Text style={styles.allocated}>
-            of {formatCurrency(budget.allocated, currencySymbol)} ({percentageDisplay}%)
+            {t('common.of')} {formatCurrency(budget.allocated, currencySymbol)}{' '}
+            ({percentageDisplay}%)
           </Text>
         </View>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.remainingLabel}>Remaining:</Text>
+        <Text style={styles.remainingLabel}>{t('budgetCard.remaining')}</Text>
         <Text
           style={[
             styles.remainingAmount,

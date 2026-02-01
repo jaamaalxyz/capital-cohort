@@ -1,7 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Category } from '../types';
-import { COLORS, SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../constants/theme';
+import {
+  COLORS,
+  SPACING,
+  FONT_SIZE,
+  CATEGORY_CONFIG,
+} from '../constants/theme';
 
 interface CategoryPickerProps {
   selected: Category | null;
@@ -11,6 +17,8 @@ interface CategoryPickerProps {
 const categories: Category[] = ['needs', 'wants', 'savings'];
 
 export function CategoryPicker({ selected, onSelect }: CategoryPickerProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       {categories.map((category) => {
@@ -22,16 +30,19 @@ export function CategoryPicker({ selected, onSelect }: CategoryPickerProps) {
             key={category}
             style={[
               styles.option,
-              isSelected && { borderColor: config.color, backgroundColor: config.color + '10' },
+              isSelected && {
+                borderColor: config.color,
+                backgroundColor: config.color + '10',
+              },
             ]}
             onPress={() => onSelect(category)}
           >
             <Text style={styles.icon}>{config.icon}</Text>
             <Text style={[styles.label, isSelected && { color: config.color }]}>
-              {config.label.toUpperCase()}
+              {t(`categories.${category}`).toUpperCase()}
             </Text>
             <Text style={styles.description} numberOfLines={2}>
-              {config.description}
+              {t(`categories.${category}Description`)}
             </Text>
           </Pressable>
         );

@@ -13,6 +13,7 @@ import {
   Modal,
   ListRenderItem,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useBudget } from '../../context/BudgetContext';
 import { AmountInput } from '../../components/AmountInput';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -28,12 +29,23 @@ import {
   getCurrencyByCode,
   Currency,
 } from '../../constants/currencies';
+import {
+  supportedLanguages,
+  changeLanguage,
+  getCurrentLanguage,
+  LanguageCode,
+} from '../../i18n';
 
 export default function SettingsScreen() {
+  const { t } = useTranslation();
   const { state, setIncome, setCurrency, resetAll } = useBudget();
   const [incomeValue, setIncomeValue] = useState(state.monthlyIncome);
   const [currencyPickerVisible, setCurrencyPickerVisible] = useState(false);
   const [currencySearch, setCurrencySearch] = useState('');
+  const [languagePickerVisible, setLanguagePickerVisible] = useState(false);
+  const [languageSearch, setLanguageSearch] = useState('');
+  const [currentLang, setCurrentLang] =
+    useState<LanguageCode>(getCurrentLanguage());
 
   useEffect(() => {
     setIncomeValue(state.monthlyIncome);
@@ -57,27 +69,38 @@ export default function SettingsScreen() {
     );
   }, [currencySearch]);
 
+  const filteredLanguages = useMemo(() => {
+    const search = languageSearch.trim().toLowerCase();
+
+    if (!search) {
+      return supportedLanguages;
+    }
+
+    return supportedLanguages.filter(
+      (l) =>
+        l.code.toLowerCase().includes(search) ||
+        l.name.toLowerCase().includes(search) ||
+        l.nativeName.toLowerCase().includes(search),
+    );
+  }, [languageSearch]);
+
   const handleIncomeChange = (value: number) => {
     setIncomeValue(value);
     setIncome(value);
   };
 
   const handleReset = () => {
-    Alert.alert(
-      'Reset All Data',
-      'This will delete all your expenses and reset your income. This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: () => {
-            resetAll();
-            setIncomeValue(0);
-          },
+    Alert.alert(t('settings.resetTitle'), t('settings.resetMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.reset'),
+        style: 'destructive',
+        onPress: () => {
+          resetAll();
+          setIncomeValue(0);
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const handleCurrencySelect = useCallback(
@@ -89,6 +112,11 @@ export default function SettingsScreen() {
     [setCurrency],
   );
 
+  const handleLanguageChange = async (langCode: LanguageCode) => {
+    await changeLanguage(langCode);
+    setCurrentLang(langCode);
+  };
+
   const openCurrencyPicker = () => {
     setCurrencySearch('');
     setCurrencyPickerVisible(true);
@@ -97,6 +125,16 @@ export default function SettingsScreen() {
   const closeCurrencyPicker = () => {
     setCurrencyPickerVisible(false);
     setCurrencySearch('');
+  };
+
+  const openLanguagePicker = () => {
+    setLanguageSearch('');
+    setLanguagePickerVisible(true);
+  };
+
+  const closeLanguagePicker = () => {
+    setLanguagePickerVisible(false);
+    setLanguageSearch('');
   };
 
   const needsAllocation = Math.round(
@@ -134,6 +172,33 @@ export default function SettingsScreen() {
     [state.currency, handleCurrencySelect],
   );
 
+  const renderLanguageItem: ListRenderItem<
+    (typeof supportedLanguages)[number]
+  > = useCallback(
+    ({ item }) => {
+      const isSelected = currentLang === item.code;
+      return (
+        <Pressable
+          style={[
+            styles.currencyItem,
+            isSelected && styles.currencyItemSelected,
+          ]}
+          onPress={() => {
+            handleLanguageChange(item.code as LanguageCode);
+            closeLanguagePicker();
+          }}
+        >
+          <View style={styles.currencyItemInfo}>
+            <Text style={styles.currencyItemCode}>{item.nativeName}</Text>
+            <Text style={styles.currencyItemName}>{item.name}</Text>
+          </View>
+          {isSelected && <Text style={styles.checkmark}>✓</Text>}
+        </Pressable>
+      );
+    },
+    [currentLang],
+  );
+
   return (
     <ScreenContainer>
       <KeyboardAvoidingView
@@ -148,14 +213,16 @@ export default function SettingsScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Settings</Text>
+            <Text style={styles.title}>{t('settings.title')}</Text>
           </View>
 
           {/* Income Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>MONTHLY INCOME</Text>
+            <Text style={styles.sectionTitle}>
+              {t('settings.monthlyIncome')}
+            </Text>
             <View style={styles.sectionContent}>
-              <Text style={styles.label}>Enter your monthly income</Text>
+              <Text style={styles.label}>{t('settings.enterIncome')}</Text>
               <AmountInput
                 value={incomeValue}
                 onChangeValue={handleIncomeChange}
@@ -167,10 +234,12 @@ export default function SettingsScreen() {
           {/* Budget Breakdown */}
           {incomeValue > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>BUDGET BREAKDOWN</Text>
+              <Text style={styles.sectionTitle}>
+                {t('settings.budgetBreakdown')}
+              </Text>
               <View style={styles.breakdownCard}>
                 <Text style={styles.breakdownIntro}>
-                  Your income will be split as:
+                  {t('settings.incomeSplitAs')}
                 </Text>
 
                 <View style={styles.breakdownRow}>
@@ -181,7 +250,9 @@ export default function SettingsScreen() {
                         { backgroundColor: COLORS.needs },
                       ]}
                     />
-                    <Text style={styles.breakdownLabel}>50% → Needs</Text>
+                    <Text style={styles.breakdownLabel}>
+                      {t('settings.needsPercent')}
+                    </Text>
                   </View>
                   <Text style={styles.breakdownValue}>
                     {formatAmount(needsAllocation)}
@@ -196,7 +267,9 @@ export default function SettingsScreen() {
                         { backgroundColor: COLORS.wants },
                       ]}
                     />
-                    <Text style={styles.breakdownLabel}>30% → Wants</Text>
+                    <Text style={styles.breakdownLabel}>
+                      {t('settings.wantsPercent')}
+                    </Text>
                   </View>
                   <Text style={styles.breakdownValue}>
                     {formatAmount(wantsAllocation)}
@@ -211,7 +284,9 @@ export default function SettingsScreen() {
                         { backgroundColor: COLORS.savings },
                       ]}
                     />
-                    <Text style={styles.breakdownLabel}>20% → Savings</Text>
+                    <Text style={styles.breakdownLabel}>
+                      {t('settings.savingsPercent')}
+                    </Text>
                   </View>
                   <Text style={styles.breakdownValue}>
                     {formatAmount(savingsAllocation)}
@@ -221,9 +296,9 @@ export default function SettingsScreen() {
             </View>
           )}
 
-          {/* Currency Section - Static View */}
+          {/* Currency Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>CURRENCY</Text>
+            <Text style={styles.sectionTitle}>{t('settings.currency')}</Text>
             <Pressable
               style={({ pressed }) => [
                 styles.currencyDisplay,
@@ -243,33 +318,59 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
 
+          {/* Language Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.currencyDisplay,
+                pressed && styles.currencyDisplayPressed,
+              ]}
+              onPress={openLanguagePicker}
+            >
+              <View style={styles.currencyDisplayLeft}>
+                <Text style={styles.currencyDisplayText}>
+                  {
+                    supportedLanguages.find((l) => l.code === currentLang)
+                      ?.nativeName
+                  }
+                </Text>
+                <Text style={styles.currencyDisplayName}>
+                  {supportedLanguages.find((l) => l.code === currentLang)?.name}
+                </Text>
+              </View>
+              <Text style={styles.editIcon}>✎</Text>
+            </Pressable>
+          </View>
+
           {/* Budget Rule Info */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>THE 50/30/20 RULE</Text>
+            <Text style={styles.sectionTitle}>{t('settings.rule503020')}</Text>
             <View style={styles.infoCard}>
               <Text style={styles.infoText}>
-                A simple budgeting rule that divides your after-tax income into
-                three categories:
+                {t('settings.ruleDescription')}
               </Text>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleEmoji}>🏠</Text>
                 <Text style={styles.ruleText}>
-                  <Text style={styles.ruleBold}>50% Needs:</Text> Essential
-                  expenses you must pay
+                  <Text style={styles.ruleBold}>{t('settings.needsRule')}</Text>{' '}
+                  {t('settings.needsRuleDesc')}
                 </Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleEmoji}>🎮</Text>
                 <Text style={styles.ruleText}>
-                  <Text style={styles.ruleBold}>30% Wants:</Text> Non-essential
-                  spending for fun
+                  <Text style={styles.ruleBold}>{t('settings.wantsRule')}</Text>{' '}
+                  {t('settings.wantsRuleDesc')}
                 </Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleEmoji}>💰</Text>
                 <Text style={styles.ruleText}>
-                  <Text style={styles.ruleBold}>20% Savings:</Text> Building
-                  your financial future
+                  <Text style={styles.ruleBold}>
+                    {t('settings.savingsRule')}
+                  </Text>{' '}
+                  {t('settings.savingsRuleDesc')}
                 </Text>
               </View>
             </View>
@@ -278,7 +379,7 @@ export default function SettingsScreen() {
           {/* Danger Zone */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, styles.dangerTitle]}>
-              DANGER ZONE
+              {t('settings.dangerZone')}
             </Text>
             <Pressable
               style={({ pressed }) => [
@@ -287,7 +388,9 @@ export default function SettingsScreen() {
               ]}
               onPress={handleReset}
             >
-              <Text style={styles.resetButtonText}>Reset All Data</Text>
+              <Text style={styles.resetButtonText}>
+                {t('settings.resetAllData')}
+              </Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -303,7 +406,9 @@ export default function SettingsScreen() {
         <View style={styles.modalContainer}>
           {/* Modal Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Currency</Text>
+            <Text style={styles.modalTitle}>
+              {t('settings.selectCurrency')}
+            </Text>
             <Pressable onPress={closeCurrencyPicker} hitSlop={8}>
               <Text style={styles.modalClose}>✕</Text>
             </Pressable>
@@ -315,7 +420,7 @@ export default function SettingsScreen() {
               style={styles.searchInput}
               value={currencySearch}
               onChangeText={setCurrencySearch}
-              placeholder="Search currencies..."
+              placeholder={t('settings.searchCurrencies')}
               placeholderTextColor={COLORS.textSecondary}
               autoFocus
             />
@@ -332,7 +437,58 @@ export default function SettingsScreen() {
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No currencies found</Text>
+                <Text style={styles.emptyText}>
+                  {t('settings.noCurrenciesFound')}
+                </Text>
+              </View>
+            }
+          />
+        </View>
+      </Modal>
+      {/* Language Picker Modal */}
+      <Modal
+        visible={languagePickerVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={closeLanguagePicker}
+      >
+        <View style={styles.modalContainer}>
+          {/* Modal Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              {t('settings.selectLanguage')}
+            </Text>
+            <Pressable onPress={closeLanguagePicker} hitSlop={8}>
+              <Text style={styles.modalClose}>✕</Text>
+            </Pressable>
+          </View>
+
+          {/* Search Input */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              value={languageSearch}
+              onChangeText={setLanguageSearch}
+              placeholder={t('settings.searchLanguages')}
+              placeholderTextColor={COLORS.textSecondary}
+              autoFocus
+            />
+          </View>
+
+          {/* Language List */}
+          <FlatList
+            data={filteredLanguages}
+            renderItem={renderLanguageItem}
+            keyExtractor={(item) => item.code}
+            contentContainerStyle={styles.currencyListContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>
+                  {t('settings.noLanguagesFound')}
+                </Text>
               </View>
             }
           />
@@ -417,7 +573,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textPrimary,
   },
-  // Currency Display (Static View)
+  // Currency Display
   currencyDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -446,6 +602,39 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.h2,
     color: COLORS.textSecondary,
     transform: [{ rotate: '90deg' }],
+  },
+  // Language Section
+  languageContainer: {
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  languageOptionSelected: {
+    backgroundColor: COLORS.needs + '15',
+  },
+  languageInfo: {
+    flex: 1,
+  },
+  languageName: {
+    fontSize: FONT_SIZE.body,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  languageNameSelected: {
+    color: COLORS.needs,
+  },
+  languageCode: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   // Info Card
   infoCard: {

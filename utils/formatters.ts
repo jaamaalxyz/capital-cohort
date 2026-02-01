@@ -1,5 +1,16 @@
+import i18n from '../i18n';
+
 export function formatCurrency(cents: number, symbol: string = '$'): string {
-  return `${symbol}${(cents / 100).toFixed(2)}`;
+  const amount = cents / 100;
+  const currentLang = i18n.language || 'en';
+  const locale = currentLang === 'bn' ? 'bn-BD' : currentLang;
+
+  const formattedAmount = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+
+  return `${symbol}${formattedAmount}`;
 }
 
 export function parseCurrency(value: string): number {
@@ -16,12 +27,16 @@ export function getCurrentMonth(): string {
 export function formatMonth(month: string): string {
   const [year, monthNum] = month.split('-');
   const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const currentLang = i18n.language || 'en';
+  const locale = currentLang === 'bn' ? 'bn-BD' : currentLang;
+  return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  const currentLang = i18n.language || 'en';
+  const locale = currentLang === 'bn' ? 'bn-BD' : currentLang;
+  return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useBudget } from '../../context/BudgetContext';
 import { BudgetCard } from '../../components/BudgetCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -23,6 +24,7 @@ import { getCurrencyByCode } from '../../constants/currencies';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { state, summary, setMonth } = useBudget();
 
   if (state.isLoading) {
@@ -69,7 +71,7 @@ export default function DashboardScreen() {
 
         {/* Income Display */}
         <View style={styles.incomeSection}>
-          <Text style={styles.incomeLabel}>Monthly Income</Text>
+          <Text style={styles.incomeLabel}>{t('dashboard.monthlyIncome')}</Text>
           <Text style={styles.incomeAmount}>
             {formatCurrency(state.monthlyIncome, currencySymbol)}
           </Text>
@@ -78,7 +80,7 @@ export default function DashboardScreen() {
               onPress={() => router.push('/(tabs)/settings')}
               style={styles.setupButton}
             >
-              <Text style={styles.setupButtonText}>Set up your income →</Text>
+              <Text style={styles.setupButtonText}>{t('dashboard.setupIncome')}</Text>
             </Pressable>
           )}
         </View>
@@ -94,13 +96,13 @@ export default function DashboardScreen() {
         {/* Summary */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Spent</Text>
+            <Text style={styles.summaryLabel}>{t('dashboard.totalSpent')}</Text>
             <Text style={styles.summaryValue}>
               {formatCurrency(summary.totalSpent, currencySymbol)}
             </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Remaining</Text>
+            <Text style={styles.summaryLabel}>{t('dashboard.remaining')}</Text>
             <Text
               style={[
                 styles.summaryValue,

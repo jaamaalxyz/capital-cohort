@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS, SPACING, FONT_SIZE } from '../constants/theme';
 
 interface AmountInputProps {
@@ -17,6 +18,7 @@ export function AmountInput({
   error,
   autoFocus,
 }: AmountInputProps) {
+  const { t } = useTranslation();
   const [displayValue, setDisplayValue] = useState('');
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export function AmountInput({
           style={styles.input}
           value={displayValue}
           onChangeText={handleChangeText}
-          placeholder="0.00"
+          placeholder={t('amountInput.placeholder')}
           placeholderTextColor={COLORS.textSecondary}
           keyboardType="decimal-pad"
           autoFocus={autoFocus}

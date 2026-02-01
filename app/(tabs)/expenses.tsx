@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useBudget } from '../../context/BudgetContext';
 import { ExpenseItem } from '../../components/ExpenseItem';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -18,17 +19,18 @@ import { getCurrencyByCode } from '../../constants/currencies';
 
 type Filter = 'all' | Category;
 
-const filters: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'needs', label: 'Needs' },
-  { key: 'wants', label: 'Wants' },
-  { key: 'savings', label: 'Savings' },
-];
-
 export default function ExpensesScreen() {
+  const { t } = useTranslation();
   const { state, currentMonthExpenses, deleteExpense } = useBudget();
   const [activeFilter, setActiveFilter] = useState<Filter>('all');
   const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
+
+  const filters: { key: Filter; label: string }[] = [
+    { key: 'all', label: t('expenses.filterAll') },
+    { key: 'needs', label: t('categories.needs') },
+    { key: 'wants', label: t('categories.wants') },
+    { key: 'savings', label: t('categories.savings') },
+  ];
 
   const filteredExpenses = useMemo(() => {
     if (activeFilter === 'all') {
@@ -44,12 +46,12 @@ export default function ExpensesScreen() {
 
   const handleDelete = (id: string) => {
     Alert.alert(
-      'Delete Expense',
-      'Are you sure you want to delete this expense?',
+      t('expenses.deleteTitle'),
+      t('expenses.deleteMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => deleteExpense(id),
         },
@@ -78,7 +80,7 @@ export default function ExpensesScreen() {
     <ScreenContainer>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Expenses</Text>
+        <Text style={styles.title}>{t('expenses.title')}</Text>
         <Text style={styles.subtitle}>{formatMonth(state.currentMonth)}</Text>
       </View>
 
@@ -117,9 +119,9 @@ export default function ExpensesScreen() {
       {filteredExpenses.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>📝</Text>
-          <Text style={styles.emptyTitle}>No expenses yet</Text>
+          <Text style={styles.emptyTitle}>{t('expenses.noExpenses')}</Text>
           <Text style={styles.emptySubtitle}>
-            Add your first expense{'\n'}from the Home screen
+            {t('expenses.addFirstExpense')}
           </Text>
         </View>
       ) : (

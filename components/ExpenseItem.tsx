@@ -1,7 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Expense } from '../types';
-import { COLORS, SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../constants/theme';
+import {
+  COLORS,
+  SPACING,
+  FONT_SIZE,
+  CATEGORY_CONFIG,
+} from '../constants/theme';
 import { formatCurrency } from '../utils/formatters';
 
 interface ExpenseItemProps {
@@ -10,7 +16,12 @@ interface ExpenseItemProps {
   onDelete?: (id: string) => void;
 }
 
-export function ExpenseItem({ expense, currencySymbol = '$', onDelete }: ExpenseItemProps) {
+export function ExpenseItem({
+  expense,
+  currencySymbol = '$',
+  onDelete,
+}: ExpenseItemProps) {
+  const { t } = useTranslation();
   const config = CATEGORY_CONFIG[expense.category];
 
   return (
@@ -23,12 +34,14 @@ export function ExpenseItem({ expense, currencySymbol = '$', onDelete }: Expense
               {expense.description}
             </Text>
             <Text style={[styles.category, { color: config.color }]}>
-              {config.label}
+              {t(`categories.${expense.category}`)}
             </Text>
           </View>
         </View>
         <View style={styles.right}>
-          <Text style={styles.amount}>{formatCurrency(expense.amount, currencySymbol)}</Text>
+          <Text style={styles.amount}>
+            {formatCurrency(expense.amount, currencySymbol)}
+          </Text>
           {onDelete && (
             <Pressable
               onPress={() => onDelete(expense.id)}

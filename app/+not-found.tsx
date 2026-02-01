@@ -1,23 +1,26 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { COLORS, SPACING, FONT_SIZE } from '../constants/theme';
 
 export default function NotFoundScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
       <Text style={styles.emoji}>🤔</Text>
-      <Text style={styles.title}>Page Not Found</Text>
-      <Text style={styles.subtitle}>
-        The page you're looking for doesn't exist.
-      </Text>
+      <Text style={styles.title}>{t('notFound.title')}</Text>
+      <Text style={styles.subtitle}>{t('notFound.subtitle')}</Text>
       <Pressable
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+        style={({ pressed }) => [
+          styles.button,
+          pressed && styles.buttonPressed,
+        ]}
         onPress={() => router.replace('/')}
       >
-        <Text style={styles.buttonText}>Go to Home</Text>
+        <Text style={styles.buttonText}>{t('notFound.goHome')}</Text>
       </Pressable>
     </View>
   );

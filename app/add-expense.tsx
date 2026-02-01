@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useBudget } from '../context/BudgetContext';
 import { AmountInput } from '../components/AmountInput';
 import { CategoryPicker } from '../components/CategoryPicker';
@@ -22,6 +23,7 @@ import { getCurrencyByCode } from '../constants/currencies';
 
 export default function AddExpenseScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { addExpense, state } = useBudget();
   const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
 
@@ -44,11 +46,11 @@ export default function AddExpenseScreen() {
     if (!validation.isValid) {
       // Determine which field has the error
       if (!amount || amount <= 0) {
-        setErrors({ amount: validation.error || 'Invalid amount' });
+        setErrors({ amount: t('addExpense.invalidAmount') });
       } else if (!description.trim()) {
-        setErrors({ description: validation.error || 'Required' });
+        setErrors({ description: t('addExpense.required') });
       } else if (!category) {
-        setErrors({ category: validation.error || 'Select a category' });
+        setErrors({ category: t('addExpense.selectCategory') });
       }
       return;
     }
@@ -69,12 +71,16 @@ export default function AddExpenseScreen() {
   const handleClose = () => {
     if (amount > 0 || description.trim()) {
       Alert.alert(
-        'Discard Changes?',
-        'You have unsaved changes. Are you sure you want to discard them?',
+        t('addExpense.discardTitle'),
+        t('addExpense.discardMessage'),
         [
-          { text: 'Keep Editing', style: 'cancel' },
-          { text: 'Discard', style: 'destructive', onPress: () => router.back() },
-        ]
+          { text: t('addExpense.keepEditing'), style: 'cancel' },
+          {
+            text: t('common.discard'),
+            style: 'destructive',
+            onPress: () => router.back(),
+          },
+        ],
       );
     } else {
       router.back();
@@ -91,7 +97,7 @@ export default function AddExpenseScreen() {
         <Pressable onPress={handleClose} hitSlop={8}>
           <Text style={styles.closeButton}>✕</Text>
         </Pressable>
-        <Text style={styles.title}>Add Expense</Text>
+        <Text style={styles.title}>{t('addExpense.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -103,7 +109,7 @@ export default function AddExpenseScreen() {
       >
         {/* Amount */}
         <View style={styles.field}>
-          <Text style={styles.label}>AMOUNT</Text>
+          <Text style={styles.label}>{t('addExpense.amount')}</Text>
           <AmountInput
             value={amount}
             onChangeValue={(value) => {
@@ -118,7 +124,7 @@ export default function AddExpenseScreen() {
 
         {/* Description */}
         <View style={styles.field}>
-          <Text style={styles.label}>DESCRIPTION</Text>
+          <Text style={styles.label}>{t('addExpense.description')}</Text>
           <TextInput
             style={[
               styles.textInput,
@@ -129,7 +135,7 @@ export default function AddExpenseScreen() {
               setDescription(text);
               setErrors((prev) => ({ ...prev, description: '' }));
             }}
-            placeholder="What did you spend on?"
+            placeholder={t('addExpense.descriptionPlaceholder')}
             placeholderTextColor={COLORS.textSecondary}
             maxLength={100}
           />
@@ -140,7 +146,7 @@ export default function AddExpenseScreen() {
 
         {/* Category */}
         <View style={styles.field}>
-          <Text style={styles.label}>CATEGORY</Text>
+          <Text style={styles.label}>{t('addExpense.category')}</Text>
           <CategoryPicker
             selected={category}
             onSelect={(cat) => {
@@ -155,10 +161,12 @@ export default function AddExpenseScreen() {
 
         {/* Date */}
         <View style={styles.field}>
-          <Text style={styles.label}>DATE</Text>
+          <Text style={styles.label}>{t('addExpense.date')}</Text>
           <View style={styles.dateDisplay}>
             <Text style={styles.dateText}>
-              {date === getToday() ? `Today (${formatDate(date)})` : formatDate(date)}
+              {date === getToday()
+                ? `${t('common.today')} (${formatDate(date)})`
+                : formatDate(date)}
             </Text>
           </View>
         </View>
@@ -173,7 +181,9 @@ export default function AddExpenseScreen() {
           ]}
           onPress={handleSubmit}
         >
-          <Text style={styles.submitButtonText}>ADD EXPENSE</Text>
+          <Text style={styles.submitButtonText}>
+            {t('addExpense.addButton')}
+          </Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>

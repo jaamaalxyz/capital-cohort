@@ -34,7 +34,8 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-localization"
     ],
     "owner": "jaamaalxyz",
     "extra": {
