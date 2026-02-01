@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/theme';
 import { Expense } from '../types';
+import { DEFAULT_CURRENCY } from '../constants/currencies';
 
 export async function saveIncome(income: number): Promise<void> {
   try {
@@ -44,8 +45,27 @@ export async function clearAllData(): Promise<void> {
       STORAGE_KEYS.INCOME,
       STORAGE_KEYS.EXPENSES,
       STORAGE_KEYS.CURRENT_MONTH,
+      STORAGE_KEYS.CURRENCY,
     ]);
   } catch (error) {
     console.error('Error clearing data:', error);
+  }
+}
+
+export async function saveCurrency(currency: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.CURRENCY, currency);
+  } catch (error) {
+    console.error('Error saving currency:', error);
+  }
+}
+
+export async function loadCurrency(): Promise<string> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.CURRENCY);
+    return value ?? DEFAULT_CURRENCY;
+  } catch (error) {
+    console.error('Error loading currency:', error);
+    return DEFAULT_CURRENCY;
   }
 }

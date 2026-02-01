@@ -19,6 +19,7 @@ import {
   getNextMonth,
   getCurrentMonth,
 } from '../../utils/formatters';
+import { getCurrencyByCode } from '../../constants/currencies';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function DashboardScreen() {
   }
 
   const isCurrentMonth = state.currentMonth === getCurrentMonth();
+  const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
 
   return (
     <ScreenContainer>
@@ -69,7 +71,7 @@ export default function DashboardScreen() {
         <View style={styles.incomeSection}>
           <Text style={styles.incomeLabel}>Monthly Income</Text>
           <Text style={styles.incomeAmount}>
-            {formatCurrency(state.monthlyIncome)}
+            {formatCurrency(state.monthlyIncome, currencySymbol)}
           </Text>
           {state.monthlyIncome === 0 && (
             <Pressable
@@ -85,16 +87,16 @@ export default function DashboardScreen() {
         <View style={styles.divider} />
 
         {/* Budget Cards */}
-        <BudgetCard category="needs" budget={summary.needs} />
-        <BudgetCard category="wants" budget={summary.wants} />
-        <BudgetCard category="savings" budget={summary.savings} />
+        <BudgetCard category="needs" budget={summary.needs} currencySymbol={currencySymbol} />
+        <BudgetCard category="wants" budget={summary.wants} currencySymbol={currencySymbol} />
+        <BudgetCard category="savings" budget={summary.savings} currencySymbol={currencySymbol} />
 
         {/* Summary */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Total Spent</Text>
             <Text style={styles.summaryValue}>
-              {formatCurrency(summary.totalSpent)}
+              {formatCurrency(summary.totalSpent, currencySymbol)}
             </Text>
           </View>
           <View style={styles.summaryRow}>
@@ -105,7 +107,7 @@ export default function DashboardScreen() {
                 summary.totalRemaining < 0 && styles.negative,
               ]}
             >
-              {formatCurrency(summary.totalRemaining)}
+              {formatCurrency(summary.totalRemaining, currencySymbol)}
             </Text>
           </View>
         </View>

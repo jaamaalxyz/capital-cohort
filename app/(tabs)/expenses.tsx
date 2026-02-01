@@ -14,6 +14,7 @@ import { Category, Expense } from '../../types';
 import { COLORS, SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../../constants/theme';
 import { formatDate, formatMonth } from '../../utils/formatters';
 import { groupExpensesByDate } from '../../utils/calculations';
+import { getCurrencyByCode } from '../../constants/currencies';
 
 type Filter = 'all' | Category;
 
@@ -27,6 +28,7 @@ const filters: { key: Filter; label: string }[] = [
 export default function ExpensesScreen() {
   const { state, currentMonthExpenses, deleteExpense } = useBudget();
   const [activeFilter, setActiveFilter] = useState<Filter>('all');
+  const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
 
   const filteredExpenses = useMemo(() => {
     if (activeFilter === 'all') {
@@ -64,6 +66,7 @@ export default function ExpensesScreen() {
           <ExpenseItem
             key={expense.id}
             expense={expense}
+            currencySymbol={currencySymbol}
             onDelete={handleDelete}
           />
         ))}

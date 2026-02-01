@@ -14,7 +14,10 @@ import {
   saveExpenses,
   loadExpenses,
   clearAllData,
+  saveCurrency,
+  loadCurrency,
 } from '../utils/storage';
+import { DEFAULT_CURRENCY } from '../constants/currencies';
 import {
   calculateBudgetSummary,
   getExpensesForMonth,
@@ -25,6 +28,7 @@ const initialState: BudgetState = {
   expenses: [],
   currentMonth: getCurrentMonth(),
   isLoading: true,
+  currency: DEFAULT_CURRENCY,
 };
 
 function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
@@ -44,6 +48,8 @@ function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
       return { ...state, ...action.payload, isLoading: false };
     case 'SET_MONTH':
       return { ...state, currentMonth: action.payload };
+    case 'SET_CURRENCY':
+      return { ...state, currency: action.payload };
     case 'RESET_ALL':
       return { ...initialState, isLoading: false, currentMonth: getCurrentMonth() };
     default:
@@ -59,6 +65,7 @@ interface BudgetContextType {
   addExpense: (expense: Expense) => void;
   deleteExpense: (id: string) => void;
   setMonth: (month: string) => void;
+  setCurrency: (currency: string) => void;
   resetAll: () => void;
 }
 
@@ -70,13 +77,14 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   // Load data on mount
   useEffect(() => {
     async function loadData() {
-      const [income, expenses] = await Promise.all([
+      const [income, expenses, currency] = await Promise.all([
         loadIncome(),
         loadExpenses(),
+        loadCurrency(),
       ]);
       dispatch({
         type: 'LOAD_DATA',
-        payload: { monthlyIncome: income, expenses },
+        payload: { monthlyIncome: income, expenses, currency },
       });
     }
     loadData();
@@ -95,6 +103,13 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       saveExpenses(state.expenses);
     }
   }, [state.expenses, state.isLoading]);
+
+  // Save currency when it changes
+  useEffect(() => {
+    if (!state.isLoading) {
+      saveCurrency(state.currency);
+    }
+  }, [state.currency, state.isLoading]);
 
   const currentMonthExpenses = useMemo(
     () => getExpensesForMonth(state.expenses, state.currentMonth),
@@ -122,6 +137,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_MONTH', payload: month });
   };
 
+  const setCurrency = (currency: string) => {
+    dispatch({ type: 'SET_CURRENCY', payload: currency });
+  };
+
   const resetAll = async () => {
     await clearAllData();
     dispatch({ type: 'RESET_ALL' });
@@ -137,6 +156,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addExpense,
         deleteExpense,
         setMonth,
+        setCurrency,
         resetAll,
       }}
     >

@@ -39,6 +39,7 @@ export interface BudgetState {
   expenses: Expense[];
   currentMonth: string; // YYYY-MM format
   isLoading: boolean;
+  currency: string; // ISO 4217 currency code (e.g., 'USD')
 }
 
 export type BudgetAction =
@@ -48,6 +49,7 @@ export type BudgetAction =
   | { type: 'DELETE_EXPENSE'; payload: string }
   | { type: 'LOAD_DATA'; payload: Partial<BudgetState> }
   | { type: 'SET_MONTH'; payload: string }
+  | { type: 'SET_CURRENCY'; payload: string }
   | { type: 'RESET_ALL' };
 
 export interface ValidationResult {

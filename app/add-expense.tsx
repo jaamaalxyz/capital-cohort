@@ -18,10 +18,12 @@ import { Category, Expense } from '../types';
 import { COLORS, SPACING, FONT_SIZE } from '../constants/theme';
 import { generateId, getToday, formatDate } from '../utils/formatters';
 import { validateExpense } from '../utils/validation';
+import { getCurrencyByCode } from '../constants/currencies';
 
 export default function AddExpenseScreen() {
   const router = useRouter();
-  const { addExpense } = useBudget();
+  const { addExpense, state } = useBudget();
+  const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
 
   const [amount, setAmount] = useState(0);
   const [description, setDescription] = useState('');
@@ -108,6 +110,7 @@ export default function AddExpenseScreen() {
               setAmount(value);
               setErrors((prev) => ({ ...prev, amount: '' }));
             }}
+            currencySymbol={currencySymbol}
             error={errors.amount}
             autoFocus
           />

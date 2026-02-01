@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,20 +8,54 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  TextInput,
+  FlatList,
+  Modal,
+  ListRenderItem,
 } from 'react-native';
 import { useBudget } from '../../context/BudgetContext';
 import { AmountInput } from '../../components/AmountInput';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { COLORS, SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../../constants/theme';
+import {
+  COLORS,
+  SPACING,
+  FONT_SIZE,
+  CATEGORY_CONFIG,
+} from '../../constants/theme';
 import { formatCurrency } from '../../utils/formatters';
+import {
+  CURRENCIES,
+  getCurrencyByCode,
+  Currency,
+} from '../../constants/currencies';
 
 export default function SettingsScreen() {
-  const { state, setIncome, resetAll } = useBudget();
+  const { state, setIncome, setCurrency, resetAll } = useBudget();
   const [incomeValue, setIncomeValue] = useState(state.monthlyIncome);
+  const [currencyPickerVisible, setCurrencyPickerVisible] = useState(false);
+  const [currencySearch, setCurrencySearch] = useState('');
 
   useEffect(() => {
     setIncomeValue(state.monthlyIncome);
   }, [state.monthlyIncome]);
+
+  const currentCurrency = getCurrencyByCode(state.currency);
+  const currencySymbol = currentCurrency?.symbol ?? '$';
+
+  const filteredCurrencies = useMemo(() => {
+    const search = currencySearch.trim().toLowerCase();
+
+    if (!search) {
+      return CURRENCIES;
+    }
+
+    return CURRENCIES.filter(
+      (c) =>
+        c.code.toLowerCase().includes(search) ||
+        c.name.toLowerCase().includes(search) ||
+        c.symbol.includes(search),
+    );
+  }, [currencySearch]);
 
   const handleIncomeChange = (value: number) => {
     setIncomeValue(value);
@@ -42,13 +76,63 @@ export default function SettingsScreen() {
             setIncomeValue(0);
           },
         },
-      ]
+      ],
     );
   };
 
-  const needsAllocation = Math.round(incomeValue * CATEGORY_CONFIG.needs.percentage);
-  const wantsAllocation = Math.round(incomeValue * CATEGORY_CONFIG.wants.percentage);
-  const savingsAllocation = Math.round(incomeValue * CATEGORY_CONFIG.savings.percentage);
+  const handleCurrencySelect = useCallback(
+    (currency: Currency) => {
+      setCurrency(currency.code);
+      setCurrencyPickerVisible(false);
+      setCurrencySearch('');
+    },
+    [setCurrency],
+  );
+
+  const openCurrencyPicker = () => {
+    setCurrencySearch('');
+    setCurrencyPickerVisible(true);
+  };
+
+  const closeCurrencyPicker = () => {
+    setCurrencyPickerVisible(false);
+    setCurrencySearch('');
+  };
+
+  const needsAllocation = Math.round(
+    incomeValue * CATEGORY_CONFIG.needs.percentage,
+  );
+  const wantsAllocation = Math.round(
+    incomeValue * CATEGORY_CONFIG.wants.percentage,
+  );
+  const savingsAllocation = Math.round(
+    incomeValue * CATEGORY_CONFIG.savings.percentage,
+  );
+
+  const formatAmount = (cents: number) => formatCurrency(cents, currencySymbol);
+
+  const renderCurrencyItem: ListRenderItem<Currency> = useCallback(
+    ({ item }) => {
+      const isSelected = state.currency === item.code;
+      return (
+        <Pressable
+          style={[
+            styles.currencyItem,
+            isSelected && styles.currencyItemSelected,
+          ]}
+          onPress={() => handleCurrencySelect(item)}
+        >
+          <Text style={styles.currencyItemSymbol}>{item.symbol}</Text>
+          <View style={styles.currencyItemInfo}>
+            <Text style={styles.currencyItemCode}>{item.code}</Text>
+            <Text style={styles.currencyItemName}>{item.name}</Text>
+          </View>
+          {isSelected && <Text style={styles.checkmark}>✓</Text>}
+        </Pressable>
+      );
+    },
+    [state.currency, handleCurrencySelect],
+  );
 
   return (
     <ScreenContainer>
@@ -75,6 +159,7 @@ export default function SettingsScreen() {
               <AmountInput
                 value={incomeValue}
                 onChangeValue={handleIncomeChange}
+                currencySymbol={currencySymbol}
               />
             </View>
           </View>
@@ -99,7 +184,7 @@ export default function SettingsScreen() {
                     <Text style={styles.breakdownLabel}>50% → Needs</Text>
                   </View>
                   <Text style={styles.breakdownValue}>
-                    {formatCurrency(needsAllocation)}
+                    {formatAmount(needsAllocation)}
                   </Text>
                 </View>
 
@@ -114,7 +199,7 @@ export default function SettingsScreen() {
                     <Text style={styles.breakdownLabel}>30% → Wants</Text>
                   </View>
                   <Text style={styles.breakdownValue}>
-                    {formatCurrency(wantsAllocation)}
+                    {formatAmount(wantsAllocation)}
                   </Text>
                 </View>
 
@@ -129,12 +214,34 @@ export default function SettingsScreen() {
                     <Text style={styles.breakdownLabel}>20% → Savings</Text>
                   </View>
                   <Text style={styles.breakdownValue}>
-                    {formatCurrency(savingsAllocation)}
+                    {formatAmount(savingsAllocation)}
                   </Text>
                 </View>
               </View>
             </View>
           )}
+
+          {/* Currency Section - Static View */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>CURRENCY</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.currencyDisplay,
+                pressed && styles.currencyDisplayPressed,
+              ]}
+              onPress={openCurrencyPicker}
+            >
+              <View style={styles.currencyDisplayLeft}>
+                <Text style={styles.currencyDisplayText}>
+                  {currentCurrency?.symbol} {currentCurrency?.code}
+                </Text>
+                <Text style={styles.currencyDisplayName}>
+                  {currentCurrency?.name}
+                </Text>
+              </View>
+              <Text style={styles.editIcon}>✎</Text>
+            </Pressable>
+          </View>
 
           {/* Budget Rule Info */}
           <View style={styles.section}>
@@ -161,8 +268,8 @@ export default function SettingsScreen() {
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleEmoji}>💰</Text>
                 <Text style={styles.ruleText}>
-                  <Text style={styles.ruleBold}>20% Savings:</Text> Building your
-                  financial future
+                  <Text style={styles.ruleBold}>20% Savings:</Text> Building
+                  your financial future
                 </Text>
               </View>
             </View>
@@ -185,6 +292,52 @@ export default function SettingsScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Currency Picker Modal */}
+      <Modal
+        visible={currencyPickerVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={closeCurrencyPicker}
+      >
+        <View style={styles.modalContainer}>
+          {/* Modal Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Currency</Text>
+            <Pressable onPress={closeCurrencyPicker} hitSlop={8}>
+              <Text style={styles.modalClose}>✕</Text>
+            </Pressable>
+          </View>
+
+          {/* Search Input */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              value={currencySearch}
+              onChangeText={setCurrencySearch}
+              placeholder="Search currencies..."
+              placeholderTextColor={COLORS.textSecondary}
+              autoFocus
+            />
+          </View>
+
+          {/* Currency List */}
+          <FlatList
+            data={filteredCurrencies}
+            renderItem={renderCurrencyItem}
+            keyExtractor={(item) => item.code}
+            contentContainerStyle={styles.currencyListContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyText}>No currencies found</Text>
+              </View>
+            }
+          />
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -264,6 +417,37 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textPrimary,
   },
+  // Currency Display (Static View)
+  currencyDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    padding: SPACING.md,
+  },
+  currencyDisplayPressed: {
+    opacity: 0.7,
+  },
+  currencyDisplayLeft: {
+    flex: 1,
+  },
+  currencyDisplayText: {
+    fontSize: FONT_SIZE.h2,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  currencyDisplayName: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  editIcon: {
+    fontSize: FONT_SIZE.h2,
+    color: COLORS.textSecondary,
+    transform: [{ rotate: '90deg' }],
+  },
+  // Info Card
   infoCard: {
     backgroundColor: COLORS.card,
     borderRadius: 12,
@@ -312,5 +496,96 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.body,
     fontWeight: '600',
     color: COLORS.error,
+  },
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.card,
+  },
+  modalTitle: {
+    fontSize: FONT_SIZE.h2,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  modalClose: {
+    fontSize: 24,
+    color: COLORS.textSecondary,
+    fontWeight: '300',
+  },
+  searchContainer: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.card,
+  },
+  searchInput: {
+    backgroundColor: COLORS.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: FONT_SIZE.body,
+    color: COLORS.textPrimary,
+  },
+  currencyListContent: {
+    paddingVertical: SPACING.sm,
+  },
+  currencyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.card,
+  },
+  currencyItemSelected: {
+    backgroundColor: COLORS.needs + '15',
+  },
+  currencyItemSymbol: {
+    fontSize: FONT_SIZE.h2,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    width: 40,
+    textAlign: 'center',
+  },
+  currencyItemInfo: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+  },
+  currencyItemCode: {
+    fontSize: FONT_SIZE.body,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  currencyItemName: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.textSecondary,
+  },
+  checkmark: {
+    fontSize: FONT_SIZE.h2,
+    color: COLORS.needs,
+    fontWeight: '600',
+  },
+  separator: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginHorizontal: SPACING.lg,
+  },
+  emptyState: {
+    padding: SPACING.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: FONT_SIZE.body,
+    color: COLORS.textSecondary,
   },
 });

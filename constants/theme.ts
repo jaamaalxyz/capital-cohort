@@ -67,4 +67,5 @@ export const STORAGE_KEYS = {
   INCOME: '@budget_income',
   EXPENSES: '@budget_expenses',
   CURRENT_MONTH: '@budget_current_month',
+  CURRENCY: '@budget_currency',
 } as const;

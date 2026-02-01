@@ -5,6 +5,7 @@ import { COLORS, SPACING, FONT_SIZE } from '../constants/theme';
 interface AmountInputProps {
   value: number; // in cents
   onChangeValue: (cents: number) => void;
+  currencySymbol?: string;
   error?: string;
   autoFocus?: boolean;
 }
@@ -12,6 +13,7 @@ interface AmountInputProps {
 export function AmountInput({
   value,
   onChangeValue,
+  currencySymbol = '$',
   error,
   autoFocus,
 }: AmountInputProps) {
@@ -50,7 +52,7 @@ export function AmountInput({
   return (
     <View style={styles.container}>
       <View style={[styles.inputContainer, error && styles.inputError]}>
-        <Text style={styles.prefix}>$</Text>
+        <Text style={styles.prefix}>{currencySymbol}</Text>
         <TextInput
           style={styles.input}
           value={displayValue}

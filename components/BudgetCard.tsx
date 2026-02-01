@@ -8,10 +8,11 @@ import { formatCurrency } from '../utils/formatters';
 interface BudgetCardProps {
   category: Category;
   budget: CategoryBudget;
+  currencySymbol?: string;
   onPress?: () => void;
 }
 
-export function BudgetCard({ category, budget, onPress }: BudgetCardProps) {
+export function BudgetCard({ category, budget, currencySymbol = '$', onPress }: BudgetCardProps) {
   const config = CATEGORY_CONFIG[category];
   const percentageDisplay = Math.round(budget.percentage);
 
@@ -35,10 +36,10 @@ export function BudgetCard({ category, budget, onPress }: BudgetCardProps) {
         />
         <View style={styles.amountRow}>
           <Text style={[styles.spent, budget.isOverBudget && styles.overBudget]}>
-            {formatCurrency(budget.spent)}
+            {formatCurrency(budget.spent, currencySymbol)}
           </Text>
           <Text style={styles.allocated}>
-            of {formatCurrency(budget.allocated)} ({percentageDisplay}%)
+            of {formatCurrency(budget.allocated, currencySymbol)} ({percentageDisplay}%)
           </Text>
         </View>
       </View>
@@ -51,7 +52,7 @@ export function BudgetCard({ category, budget, onPress }: BudgetCardProps) {
             budget.isOverBudget && styles.overBudget,
           ]}
         >
-          {formatCurrency(budget.remaining)}
+          {formatCurrency(budget.remaining, currencySymbol)}
           {budget.remaining >= 0 && !budget.isOverBudget && ' ✓'}
         </Text>
       </View>

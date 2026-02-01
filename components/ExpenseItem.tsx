@@ -6,10 +6,11 @@ import { formatCurrency } from '../utils/formatters';
 
 interface ExpenseItemProps {
   expense: Expense;
+  currencySymbol?: string;
   onDelete?: (id: string) => void;
 }
 
-export function ExpenseItem({ expense, onDelete }: ExpenseItemProps) {
+export function ExpenseItem({ expense, currencySymbol = '$', onDelete }: ExpenseItemProps) {
   const config = CATEGORY_CONFIG[expense.category];
 
   return (
@@ -27,7 +28,7 @@ export function ExpenseItem({ expense, onDelete }: ExpenseItemProps) {
           </View>
         </View>
         <View style={styles.right}>
-          <Text style={styles.amount}>{formatCurrency(expense.amount)}</Text>
+          <Text style={styles.amount}>{formatCurrency(expense.amount, currencySymbol)}</Text>
           {onDelete && (
             <Pressable
               onPress={() => onDelete(expense.id)}
