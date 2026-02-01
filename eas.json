@@ -20,16 +20,5 @@
         "resourceClass": "m-medium"
       }
     }
-  },
-  "submit": {
-    "production": {
-      "ios": {
-        "appleId": "",
-        "ascAppId": ""
-      },
-      "android": {
-        "track": "internal"
-      }
-    }
   }
 }
