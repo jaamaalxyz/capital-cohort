@@ -16,7 +16,8 @@ import * as Location from 'expo-location';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage, supportedLanguages } from '../i18n';
 import { useBudget } from '../context/BudgetContext';
-import { COLORS, SPACING, FONT_SIZE } from '../constants/theme';
+import { SPACING, FONT_SIZE } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { CURRENCIES, getCurrencyByCode } from '../constants/currencies';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { AmountInput } from '../components/AmountInput';
@@ -28,6 +29,9 @@ export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
   const { state, setIncome, setCurrency, setLocation, completeOnboarding } =
     useBudget();
+  const { colors } = useTheme();
+
+  const styles = createStyles(colors);
 
   const [step, setStep] = useState(0); // 0: Welcome, 1: Location, 2: Language, 3: Currency, 4: Income, 5: Summary
   const [isLocating, setIsLocating] = useState(false);
@@ -265,7 +269,7 @@ export default function OnboardingScreen() {
             placeholder={t('settings.searchCurrencies')}
             value={currencySearch}
             onChangeText={setCurrencySearch}
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={colors.textSecondary}
           />
         </View>
 
@@ -466,264 +470,265 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  navBar: {
-    height: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md,
-  },
-  backButton: {
-    width: 60,
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: COLORS.needs,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  progressDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 3,
-  },
-  progressDotActive: {
-    backgroundColor: COLORS.needs,
-  },
-  progressDotSelected: {
-    width: 12,
-    backgroundColor: COLORS.needs,
-  },
-  stepContainer: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: SPACING.lg,
-  },
-  header: {
-    marginTop: SPACING.xl,
-    marginBottom: SPACING.xl,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: FONT_SIZE.h1,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    textAlign: 'center',
-    marginBottom: SPACING.sm,
-  },
-  subtitle: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  welcomeImageContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: SPACING.xl,
-  },
-  welcomeCircle: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: 'rgba(76, 175, 80, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  welcomeEmoji: {
-    fontSize: 100,
-  },
-  illustrationContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: SPACING.xl,
-  },
-  illustrationEmoji: {
-    fontSize: 100,
-  },
-  footer: {
-    paddingVertical: SPACING.xl,
-    marginTop: 'auto',
-  },
-  primaryButton: {
-    backgroundColor: COLORS.needs,
-    borderRadius: 12,
-    paddingVertical: SPACING.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-  },
-  ghostButton: {
-    paddingVertical: SPACING.md,
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-  },
-  ghostButtonText: {
-    color: COLORS.textSecondary,
-    fontSize: FONT_SIZE.body,
-    fontWeight: '500',
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-  // Reused styles from Settings
-  listContainer: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  languageOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  languageOptionSelected: {
-    backgroundColor: COLORS.needs + '15',
-  },
-  languageInfo: {
-    flex: 1,
-  },
-  languageName: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  languageNameSelected: {
-    color: COLORS.needs,
-  },
-  languageCode: {
-    fontSize: FONT_SIZE.caption,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  checkmark: {
-    fontSize: FONT_SIZE.h2,
-    color: COLORS.needs,
-    fontWeight: '600',
-  },
-  listContent: {
-    paddingBottom: SPACING.xl,
-  },
-  currencyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.md,
-    backgroundColor: COLORS.card,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  currencyItemSelected: {
-    backgroundColor: COLORS.needs + '15',
-  },
-  currencyItemSymbol: {
-    fontSize: FONT_SIZE.h2,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    width: 40,
-    textAlign: 'center',
-  },
-  currencyItemInfo: {
-    flex: 1,
-    marginLeft: SPACING.sm,
-  },
-  currencyItemCode: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  currencyItemName: {
-    fontSize: FONT_SIZE.caption,
-    color: COLORS.textSecondary,
-  },
-  incomeContainer: {
-    marginTop: SPACING.md,
-  },
-  summaryContainer: {
-    flex: 1,
-  },
-  summarySection: {
-    marginBottom: SPACING.md,
-  },
-  summaryLabel: {
-    fontSize: FONT_SIZE.caption,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  currencyDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  currencyDisplayLeft: {
-    flex: 1,
-  },
-  currencyDisplayText: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  currencyDisplayName: {
-    fontSize: FONT_SIZE.caption,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: FONT_SIZE.caption,
-    textAlign: 'center',
-    marginTop: SPACING.sm,
-  },
-  searchContainer: {
-    marginBottom: SPACING.md,
-  },
-  searchInput: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textPrimary,
-  },
-  emptyState: {
-    padding: SPACING.xl,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    navBar: {
+      height: 50,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: SPACING.md,
+    },
+    backButton: {
+      width: 60,
+      alignItems: 'center',
+    },
+    backButtonText: {
+      color: colors.needs,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    progressContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    progressDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.border,
+      marginHorizontal: 3,
+    },
+    progressDotActive: {
+      backgroundColor: colors.needs,
+    },
+    progressDotSelected: {
+      width: 12,
+      backgroundColor: colors.needs,
+    },
+    stepContainer: {
+      flex: 1,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: SPACING.lg,
+    },
+    header: {
+      marginTop: SPACING.xl,
+      marginBottom: SPACING.xl,
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: FONT_SIZE.h1,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      textAlign: 'center',
+      marginBottom: SPACING.sm,
+    },
+    subtitle: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    welcomeImageContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical: SPACING.xl,
+    },
+    welcomeCircle: {
+      width: 220,
+      height: 220,
+      borderRadius: 110,
+      backgroundColor: 'rgba(76, 175, 80, 0.12)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    welcomeEmoji: {
+      fontSize: 100,
+    },
+    illustrationContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical: SPACING.xl,
+    },
+    illustrationEmoji: {
+      fontSize: 100,
+    },
+    footer: {
+      paddingVertical: SPACING.xl,
+      marginTop: 'auto',
+    },
+    primaryButton: {
+      backgroundColor: colors.needs,
+      borderRadius: 12,
+      paddingVertical: SPACING.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    primaryButtonText: {
+      color: '#FFFFFF',
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+    },
+    ghostButton: {
+      paddingVertical: SPACING.md,
+      alignItems: 'center',
+      marginTop: SPACING.sm,
+    },
+    ghostButtonText: {
+      color: colors.textSecondary,
+      fontSize: FONT_SIZE.body,
+      fontWeight: '500',
+    },
+    disabled: {
+      opacity: 0.6,
+    },
+    // Reused styles from Settings
+    listContainer: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    languageOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    languageOptionSelected: {
+      backgroundColor: colors.needs + '15',
+    },
+    languageInfo: {
+      flex: 1,
+    },
+    languageName: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    languageNameSelected: {
+      color: colors.needs,
+    },
+    languageCode: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    checkmark: {
+      fontSize: FONT_SIZE.h2,
+      color: colors.needs,
+      fontWeight: '600',
+    },
+    listContent: {
+      paddingBottom: SPACING.xl,
+    },
+    currencyItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.md,
+      backgroundColor: colors.card,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    currencyItemSelected: {
+      backgroundColor: colors.needs + '15',
+    },
+    currencyItemSymbol: {
+      fontSize: FONT_SIZE.h2,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      width: 40,
+      textAlign: 'center',
+    },
+    currencyItemInfo: {
+      flex: 1,
+      marginLeft: SPACING.sm,
+    },
+    currencyItemCode: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    currencyItemName: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.textSecondary,
+    },
+    incomeContainer: {
+      marginTop: SPACING.md,
+    },
+    summaryContainer: {
+      flex: 1,
+    },
+    summarySection: {
+      marginBottom: SPACING.md,
+    },
+    summaryLabel: {
+      fontSize: FONT_SIZE.caption,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      marginBottom: SPACING.xs,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    currencyDisplay: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: SPACING.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    currencyDisplayLeft: {
+      flex: 1,
+    },
+    currencyDisplayText: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    currencyDisplayName: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: FONT_SIZE.caption,
+      textAlign: 'center',
+      marginTop: SPACING.sm,
+    },
+    searchContainer: {
+      marginBottom: SPACING.md,
+    },
+    searchInput: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
+      fontSize: FONT_SIZE.body,
+      color: colors.textPrimary,
+    },
+    emptyState: {
+      padding: SPACING.xl,
+      alignItems: 'center',
+    },
+    emptyText: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+    },
+  });

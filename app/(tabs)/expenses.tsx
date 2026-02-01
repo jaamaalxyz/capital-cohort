@@ -12,7 +12,8 @@ import { useBudget } from '../../context/BudgetContext';
 import { ExpenseItem } from '../../components/ExpenseItem';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Category, Expense } from '../../types';
-import { COLORS, SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../../constants/theme';
+import { SPACING, FONT_SIZE } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { formatDate, formatMonth } from '../../utils/formatters';
 import { groupExpensesByDate } from '../../utils/calculations';
 import { getCurrencyByCode } from '../../constants/currencies';
@@ -23,7 +24,10 @@ export default function ExpensesScreen() {
   const { t } = useTranslation();
   const { state, currentMonthExpenses, deleteExpense } = useBudget();
   const [activeFilter, setActiveFilter] = useState<Filter>('all');
+  const { colors } = useTheme();
   const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
+
+  const styles = createStyles(colors);
 
   const filters: { key: Filter; label: string }[] = [
     { key: 'all', label: t('expenses.filterAll') },
@@ -41,22 +45,18 @@ export default function ExpensesScreen() {
 
   const groupedExpenses = useMemo(
     () => groupExpensesByDate(filteredExpenses),
-    [filteredExpenses]
+    [filteredExpenses],
   );
 
   const handleDelete = (id: string) => {
-    Alert.alert(
-      t('expenses.deleteTitle'),
-      t('expenses.deleteMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () => deleteExpense(id),
-        },
-      ]
-    );
+    Alert.alert(t('expenses.deleteTitle'), t('expenses.deleteMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => deleteExpense(id),
+      },
+    ]);
   };
 
   const renderDateSection = ({ item }: { item: [string, Expense[]] }) => {
@@ -90,8 +90,8 @@ export default function ExpensesScreen() {
           const isActive = activeFilter === filter.key;
           const color =
             filter.key === 'all'
-              ? COLORS.textPrimary
-              : CATEGORY_CONFIG[filter.key].color;
+              ? colors.textPrimary
+              : colors[filter.key as Category];
 
           return (
             <Pressable
@@ -105,7 +105,12 @@ export default function ExpensesScreen() {
               <Text
                 style={[
                   styles.filterText,
-                  isActive && styles.filterTextActive,
+                  isActive && {
+                    color:
+                      filter.key === 'all'
+                        ? colors.background
+                        : '#FFFFFF',
+                  },
                 ]}
               >
                 {filter.label}
@@ -137,78 +142,76 @@ export default function ExpensesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.sm,
-  },
-  title: {
-    fontSize: FONT_SIZE.h1,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  subtitle: {
-    fontSize: FONT_SIZE.bodySmall,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    gap: SPACING.sm,
-  },
-  filterPill: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 20,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  filterText: {
-    fontSize: FONT_SIZE.bodySmall,
-    fontWeight: '500',
-    color: COLORS.textPrimary,
-  },
-  filterTextActive: {
-    color: '#FFFFFF',
-  },
-  listContent: {
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xl,
-  },
-  dateSection: {
-    marginTop: SPACING.md,
-  },
-  dateHeader: {
-    fontSize: FONT_SIZE.caption,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
-    textTransform: 'uppercase',
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xl,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: SPACING.md,
-  },
-  emptyTitle: {
-    fontSize: FONT_SIZE.h2,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm,
-  },
-  emptySubtitle: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    header: {
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING.sm,
+    },
+    title: {
+      fontSize: FONT_SIZE.h1,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    subtitle: {
+      fontSize: FONT_SIZE.bodySmall,
+      color: colors.textSecondary,
+      marginTop: SPACING.xs,
+    },
+    filterContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.sm,
+      gap: SPACING.sm,
+    },
+    filterPill: {
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    filterText: {
+      fontSize: FONT_SIZE.bodySmall,
+      fontWeight: '500',
+      color: colors.textPrimary,
+    },
+    listContent: {
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING.xl,
+    },
+    dateSection: {
+      marginTop: SPACING.md,
+    },
+    dateHeader: {
+      fontSize: FONT_SIZE.caption,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      marginBottom: SPACING.sm,
+      textTransform: 'uppercase',
+    },
+    emptyState: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: SPACING.xl,
+    },
+    emptyIcon: {
+      fontSize: 48,
+      marginBottom: SPACING.md,
+    },
+    emptyTitle: {
+      fontSize: FONT_SIZE.h2,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      marginBottom: SPACING.sm,
+    },
+    emptySubtitle: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+  });

@@ -5,6 +5,8 @@ export enum AppLanguage {
 
 export type LanguageCode = 'en' | 'bn';
 
+export type ThemeMode = 'auto' | 'dark' | 'light';
+
 export interface Currency {
   code: string;
   symbol: string;

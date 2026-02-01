@@ -2,11 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { COLORS, SPACING, FONT_SIZE } from '../constants/theme';
+import { SPACING, FONT_SIZE } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function NotFoundScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.container}>
@@ -26,42 +29,43 @@ export default function NotFoundScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.xl,
-    backgroundColor: COLORS.background,
-  },
-  emoji: {
-    fontSize: 64,
-    marginBottom: SPACING.lg,
-  },
-  title: {
-    fontSize: FONT_SIZE.h1,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm,
-  },
-  subtitle: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: SPACING.xl,
-  },
-  button: {
-    backgroundColor: COLORS.needs,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.md,
-    borderRadius: 12,
-  },
-  buttonPressed: {
-    opacity: 0.9,
-  },
-  buttonText: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: SPACING.xl,
+      backgroundColor: colors.background,
+    },
+    emoji: {
+      fontSize: 64,
+      marginBottom: SPACING.lg,
+    },
+    title: {
+      fontSize: FONT_SIZE.h1,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: SPACING.sm,
+    },
+    subtitle: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: SPACING.xl,
+    },
+    button: {
+      backgroundColor: colors.needs,
+      paddingHorizontal: SPACING.xl,
+      paddingVertical: SPACING.md,
+      borderRadius: 12,
+    },
+    buttonPressed: {
+      opacity: 0.9,
+    },
+    buttonText: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+  });

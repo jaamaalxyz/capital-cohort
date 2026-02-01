@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 interface ProgressBarProps {
   percentage: number;
@@ -8,9 +8,16 @@ interface ProgressBarProps {
   isOverBudget?: boolean;
 }
 
-export function ProgressBar({ percentage, color, isOverBudget }: ProgressBarProps) {
+export function ProgressBar({
+  percentage,
+  color,
+  isOverBudget,
+}: ProgressBarProps) {
+  const { colors } = useTheme();
   const fillWidth = Math.min(percentage, 100);
-  const barColor = isOverBudget ? COLORS.overBudget : color;
+  const barColor = isOverBudget ? colors.overBudget : color;
+
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.container}>
@@ -26,18 +33,19 @@ export function ProgressBar({ percentage, color, isOverBudget }: ProgressBarProp
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-  background: {
-    height: 8,
-    backgroundColor: COLORS.progressBackground,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      width: '100%',
+    },
+    background: {
+      height: 8,
+      backgroundColor: colors.progressBackground,
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    fill: {
+      height: '100%',
+      borderRadius: 4,
+    },
+  });

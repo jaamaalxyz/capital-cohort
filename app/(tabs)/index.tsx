@@ -12,7 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { useBudget } from '../../context/BudgetContext';
 import { BudgetCard } from '../../components/BudgetCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { COLORS, SPACING, FONT_SIZE } from '../../constants/theme';
+import { SPACING, FONT_SIZE } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import {
   formatCurrency,
   formatMonth,
@@ -26,11 +27,14 @@ export default function DashboardScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { state, summary, setMonth } = useBudget();
+  const { colors } = useTheme();
+
+  const styles = createStyles(colors);
 
   if (state.isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.needs} />
+        <ActivityIndicator size="large" color={colors.needs} />
       </View>
     );
   }
@@ -80,7 +84,9 @@ export default function DashboardScreen() {
               onPress={() => router.push('/(tabs)/settings')}
               style={styles.setupButton}
             >
-              <Text style={styles.setupButtonText}>{t('dashboard.setupIncome')}</Text>
+              <Text style={styles.setupButtonText}>
+                {t('dashboard.setupIncome')}
+              </Text>
             </Pressable>
           )}
         </View>
@@ -89,9 +95,21 @@ export default function DashboardScreen() {
         <View style={styles.divider} />
 
         {/* Budget Cards */}
-        <BudgetCard category="needs" budget={summary.needs} currencySymbol={currencySymbol} />
-        <BudgetCard category="wants" budget={summary.wants} currencySymbol={currencySymbol} />
-        <BudgetCard category="savings" budget={summary.savings} currencySymbol={currencySymbol} />
+        <BudgetCard
+          category="needs"
+          budget={summary.needs}
+          currencySymbol={currencySymbol}
+        />
+        <BudgetCard
+          category="wants"
+          budget={summary.wants}
+          currencySymbol={currencySymbol}
+        />
+        <BudgetCard
+          category="savings"
+          budget={summary.savings}
+          currencySymbol={currencySymbol}
+        />
 
         {/* Summary */}
         <View style={styles.summaryCard}>
@@ -126,118 +144,119 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: SPACING.lg,
-    paddingBottom: 100,
-  },
-  monthSelector: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  monthArrow: {
-    fontSize: 18,
-    color: COLORS.textPrimary,
-    paddingHorizontal: SPACING.md,
-  },
-  disabled: {
-    color: COLORS.border,
-  },
-  monthText: {
-    fontSize: FONT_SIZE.h2,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    minWidth: 180,
-    textAlign: 'center',
-  },
-  incomeSection: {
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  incomeLabel: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
-  },
-  incomeAmount: {
-    fontSize: FONT_SIZE.amountLarge,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  setupButton: {
-    marginTop: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.md,
-  },
-  setupButtonText: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.needs,
-    fontWeight: '500',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: SPACING.lg,
-  },
-  summaryCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: SPACING.md,
-    marginTop: SPACING.sm,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: SPACING.xs,
-  },
-  summaryLabel: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-  },
-  summaryValue: {
-    fontSize: FONT_SIZE.amount,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  negative: {
-    color: COLORS.error,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: SPACING.lg,
-    right: SPACING.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.needs,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  fabPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.95 }],
-  },
-  fabText: {
-    fontSize: 32,
-    color: '#FFFFFF',
-    fontWeight: '300',
-    lineHeight: 34,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: SPACING.lg,
+      paddingBottom: 100,
+    },
+    monthSelector: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: SPACING.lg,
+    },
+    monthArrow: {
+      fontSize: 18,
+      color: colors.textPrimary,
+      paddingHorizontal: SPACING.md,
+    },
+    disabled: {
+      color: colors.border,
+    },
+    monthText: {
+      fontSize: FONT_SIZE.h2,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      minWidth: 180,
+      textAlign: 'center',
+    },
+    incomeSection: {
+      alignItems: 'center',
+      marginBottom: SPACING.md,
+    },
+    incomeLabel: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+      marginBottom: SPACING.xs,
+    },
+    incomeAmount: {
+      fontSize: FONT_SIZE.amountLarge,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    setupButton: {
+      marginTop: SPACING.sm,
+      paddingVertical: SPACING.xs,
+      paddingHorizontal: SPACING.md,
+    },
+    setupButtonText: {
+      fontSize: FONT_SIZE.body,
+      color: colors.needs,
+      fontWeight: '500',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: SPACING.lg,
+    },
+    summaryCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: SPACING.md,
+      marginTop: SPACING.sm,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: SPACING.xs,
+    },
+    summaryLabel: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+    },
+    summaryValue: {
+      fontSize: FONT_SIZE.amount,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    negative: {
+      color: colors.error,
+    },
+    fab: {
+      position: 'absolute',
+      bottom: SPACING.lg,
+      right: SPACING.lg,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.needs,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    fabPressed: {
+      opacity: 0.9,
+      transform: [{ scale: 0.95 }],
+    },
+    fabText: {
+      fontSize: 32,
+      color: '#FFFFFF',
+      fontWeight: '300',
+      lineHeight: 34,
+    },
+  });

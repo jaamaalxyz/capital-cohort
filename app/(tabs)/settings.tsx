@@ -20,29 +20,23 @@ import { useRouter } from 'expo-router';
 import { useBudget } from '../../context/BudgetContext';
 import { AmountInput } from '../../components/AmountInput';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import {
-  COLORS,
-  SPACING,
-  FONT_SIZE,
-  CATEGORY_CONFIG,
-} from '../../constants/theme';
+import { SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
+import { ThemePicker } from '../../components/ThemePicker';
 import { formatCurrency } from '../../utils/formatters';
-import {
-  CURRENCIES,
-  getCurrencyByCode,
-  Currency,
-} from '../../constants/currencies';
+import { CURRENCIES, getCurrencyByCode } from '../../constants/currencies';
+import { Currency, LanguageCode } from '../../types';
 import {
   supportedLanguages,
   changeLanguage,
   getCurrentLanguage,
-  LanguageCode,
 } from '../../i18n';
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { state, setIncome, setCurrency, setLocation, resetAll } = useBudget();
+  const { colors, isDark } = useTheme();
   const [incomeValue, setIncomeValue] = useState(state.monthlyIncome);
   const [isLocating, setIsLocating] = useState(false);
   const [currencyPickerVisible, setCurrencyPickerVisible] = useState(false);
@@ -189,6 +183,8 @@ export default function SettingsScreen() {
 
   const formatAmount = (cents: number) => formatCurrency(cents, currencySymbol);
 
+  const styles = createStyles(colors);
+
   const renderCurrencyItem: ListRenderItem<Currency> = useCallback(
     ({ item }) => {
       const isSelected = state.currency === item.code;
@@ -287,7 +283,7 @@ export default function SettingsScreen() {
                     <View
                       style={[
                         styles.breakdownDot,
-                        { backgroundColor: COLORS.needs },
+                        { backgroundColor: colors.needs },
                       ]}
                     />
                     <Text style={styles.breakdownLabel}>
@@ -304,7 +300,7 @@ export default function SettingsScreen() {
                     <View
                       style={[
                         styles.breakdownDot,
-                        { backgroundColor: COLORS.wants },
+                        { backgroundColor: colors.wants },
                       ]}
                     />
                     <Text style={styles.breakdownLabel}>
@@ -321,7 +317,7 @@ export default function SettingsScreen() {
                     <View
                       style={[
                         styles.breakdownDot,
-                        { backgroundColor: COLORS.savings },
+                        { backgroundColor: colors.savings },
                       ]}
                     />
                     <Text style={styles.breakdownLabel}>
@@ -417,11 +413,21 @@ export default function SettingsScreen() {
                 )}
               </View>
               {isLocating ? (
-                <ActivityIndicator size="small" color={COLORS.needs} />
+                <ActivityIndicator size="small" color={colors.needs} />
               ) : (
                 <Text style={styles.editIcon}>✎</Text>
               )}
             </Pressable>
+          </View>
+
+          {/* Appearance Section */}
+          <View style={styles.section}>
+            <Text
+              style={[styles.sectionTitle, { color: colors.textSecondary }]}
+            >
+              {t('settings.theme')}
+            </Text>
+            <ThemePicker />
           </View>
 
           {/* Budget Rule Info */}
@@ -498,11 +504,18 @@ export default function SettingsScreen() {
           {/* Search Input */}
           <View style={styles.searchContainer}>
             <TextInput
-              style={styles.searchInput}
+              style={[
+                styles.searchInput,
+                {
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                  backgroundColor: colors.card,
+                },
+              ]}
               value={currencySearch}
               onChangeText={setCurrencySearch}
               placeholder={t('settings.searchCurrencies')}
-              placeholderTextColor={COLORS.textSecondary}
+              placeholderTextColor={colors.textSecondary}
               autoFocus
             />
           </View>
@@ -547,11 +560,18 @@ export default function SettingsScreen() {
           {/* Search Input */}
           <View style={styles.searchContainer}>
             <TextInput
-              style={styles.searchInput}
+              style={[
+                styles.searchInput,
+                {
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                  backgroundColor: colors.card,
+                },
+              ]}
               value={languageSearch}
               onChangeText={setLanguageSearch}
               placeholder={t('settings.searchLanguages')}
-              placeholderTextColor={COLORS.textSecondary}
+              placeholderTextColor={colors.textSecondary}
               autoFocus
             />
           </View>
@@ -579,286 +599,287 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: SPACING.xl,
-  },
-  header: {
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.md,
-  },
-  title: {
-    fontSize: FONT_SIZE.h1,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  section: {
-    marginTop: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-  },
-  sectionTitle: {
-    fontSize: FONT_SIZE.caption,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
-    letterSpacing: 0.5,
-  },
-  sectionContent: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: SPACING.md,
-  },
-  label: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
-  },
-  breakdownCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: SPACING.md,
-  },
-  breakdownIntro: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.md,
-  },
-  breakdownRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: SPACING.sm,
-  },
-  breakdownLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  breakdownDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: SPACING.sm,
-  },
-  breakdownLabel: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textPrimary,
-  },
-  breakdownValue: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  // Currency Display
-  currencyDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: SPACING.md,
-  },
-  currencyDisplayPressed: {
-    opacity: 0.7,
-  },
-  currencyDisplayLeft: {
-    flex: 1,
-  },
-  currencyDisplayText: {
-    fontSize: FONT_SIZE.h2,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  currencyDisplayName: {
-    fontSize: FONT_SIZE.caption,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  editIcon: {
-    fontSize: FONT_SIZE.h2,
-    color: COLORS.textSecondary,
-    transform: [{ rotate: '90deg' }],
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-  // Language Section
-  languageContainer: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  languageOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  languageOptionSelected: {
-    backgroundColor: COLORS.needs + '15',
-  },
-  languageInfo: {
-    flex: 1,
-  },
-  languageName: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  languageNameSelected: {
-    color: COLORS.needs,
-  },
-  languageCode: {
-    fontSize: FONT_SIZE.caption,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  // Info Card
-  infoCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: SPACING.md,
-  },
-  infoText: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-    lineHeight: 22,
-    marginBottom: SPACING.md,
-  },
-  ruleItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: SPACING.sm,
-  },
-  ruleEmoji: {
-    fontSize: 20,
-    marginRight: SPACING.sm,
-  },
-  ruleText: {
-    flex: 1,
-    fontSize: FONT_SIZE.bodySmall,
-    color: COLORS.textSecondary,
-    lineHeight: 20,
-  },
-  ruleBold: {
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  dangerTitle: {
-    color: COLORS.error,
-  },
-  resetButton: {
-    backgroundColor: COLORS.error + '15',
-    borderRadius: 12,
-    padding: SPACING.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.error + '30',
-  },
-  resetButtonPressed: {
-    backgroundColor: COLORS.error + '25',
-  },
-  resetButtonText: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: COLORS.error,
-  },
-  // Modal Styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    backgroundColor: COLORS.card,
-  },
-  modalTitle: {
-    fontSize: FONT_SIZE.h2,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  modalClose: {
-    fontSize: 24,
-    color: COLORS.textSecondary,
-    fontWeight: '300',
-  },
-  searchContainer: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    backgroundColor: COLORS.card,
-  },
-  searchInput: {
-    backgroundColor: COLORS.background,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textPrimary,
-  },
-  currencyListContent: {
-    paddingVertical: SPACING.sm,
-  },
-  currencyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.card,
-  },
-  currencyItemSelected: {
-    backgroundColor: COLORS.needs + '15',
-  },
-  currencyItemSymbol: {
-    fontSize: FONT_SIZE.h2,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    width: 40,
-    textAlign: 'center',
-  },
-  currencyItemInfo: {
-    flex: 1,
-    marginLeft: SPACING.sm,
-  },
-  currencyItemCode: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  currencyItemName: {
-    fontSize: FONT_SIZE.caption,
-    color: COLORS.textSecondary,
-  },
-  checkmark: {
-    fontSize: FONT_SIZE.h2,
-    color: COLORS.needs,
-    fontWeight: '600',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginHorizontal: SPACING.lg,
-  },
-  emptyState: {
-    padding: SPACING.xl,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textSecondary,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    keyboardView: {
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: SPACING.xl,
+    },
+    header: {
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING.md,
+    },
+    title: {
+      fontSize: FONT_SIZE.h1,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    section: {
+      marginTop: SPACING.lg,
+      paddingHorizontal: SPACING.lg,
+    },
+    sectionTitle: {
+      fontSize: FONT_SIZE.caption,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      marginBottom: SPACING.sm,
+      letterSpacing: 0.5,
+    },
+    sectionContent: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: SPACING.md,
+    },
+    label: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+      marginBottom: SPACING.sm,
+    },
+    breakdownCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: SPACING.md,
+    },
+    breakdownIntro: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+      marginBottom: SPACING.md,
+    },
+    breakdownRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: SPACING.sm,
+    },
+    breakdownLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    breakdownDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: SPACING.sm,
+    },
+    breakdownLabel: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textPrimary,
+    },
+    breakdownValue: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    // Currency Display
+    currencyDisplay: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: SPACING.md,
+    },
+    currencyDisplayPressed: {
+      opacity: 0.7,
+    },
+    currencyDisplayLeft: {
+      flex: 1,
+    },
+    currencyDisplayText: {
+      fontSize: FONT_SIZE.h2,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    currencyDisplayName: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    editIcon: {
+      fontSize: FONT_SIZE.h2,
+      color: colors.textSecondary,
+      transform: [{ rotate: '90deg' }],
+    },
+    disabled: {
+      opacity: 0.6,
+    },
+    // Language Section
+    languageContainer: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      overflow: 'hidden',
+    },
+    languageOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    languageOptionSelected: {
+      backgroundColor: colors.needs + '15',
+    },
+    languageInfo: {
+      flex: 1,
+    },
+    languageName: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    languageNameSelected: {
+      color: colors.needs,
+    },
+    languageCode: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    // Info Card
+    infoCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: SPACING.md,
+    },
+    infoText: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+      lineHeight: 22,
+      marginBottom: SPACING.md,
+    },
+    ruleItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: SPACING.sm,
+    },
+    ruleEmoji: {
+      fontSize: 20,
+      marginRight: SPACING.sm,
+    },
+    ruleText: {
+      flex: 1,
+      fontSize: FONT_SIZE.bodySmall,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+    ruleBold: {
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    dangerTitle: {
+      color: colors.error,
+    },
+    resetButton: {
+      backgroundColor: colors.error + '15',
+      borderRadius: 12,
+      padding: SPACING.md,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.error + '30',
+    },
+    resetButtonPressed: {
+      backgroundColor: colors.error + '25',
+    },
+    resetButtonText: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: colors.error,
+    },
+    // Modal Styles
+    modalContainer: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    modalTitle: {
+      fontSize: FONT_SIZE.h2,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    modalClose: {
+      fontSize: 24,
+      color: colors.textSecondary,
+      fontWeight: '300',
+    },
+    searchContainer: {
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+      backgroundColor: colors.card,
+    },
+    searchInput: {
+      backgroundColor: colors.background,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
+      fontSize: FONT_SIZE.body,
+      color: colors.textPrimary,
+    },
+    currencyListContent: {
+      paddingVertical: SPACING.sm,
+    },
+    currencyItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.lg,
+      backgroundColor: colors.card,
+    },
+    currencyItemSelected: {
+      backgroundColor: colors.needs + '15',
+    },
+    currencyItemSymbol: {
+      fontSize: FONT_SIZE.h2,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      width: 40,
+      textAlign: 'center',
+    },
+    currencyItemInfo: {
+      flex: 1,
+      marginLeft: SPACING.sm,
+    },
+    currencyItemCode: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    currencyItemName: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.textSecondary,
+    },
+    checkmark: {
+      fontSize: FONT_SIZE.h2,
+      color: colors.needs,
+      fontWeight: '600',
+    },
+    separator: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginHorizontal: SPACING.lg,
+    },
+    emptyState: {
+      padding: SPACING.xl,
+      alignItems: 'center',
+    },
+    emptyText: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textSecondary,
+    },
+  });

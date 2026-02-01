@@ -1,6 +1,6 @@
 import { CategoryConfig } from '../types';
 
-export const COLORS = {
+export const LIGHT_COLORS = {
   // Category colors
   needs: '#4CAF50',
   wants: '#2196F3',
@@ -19,6 +19,28 @@ export const COLORS = {
   progressBackground: '#E0E0E0',
   overBudget: '#F44336',
 };
+
+export const DARK_COLORS = {
+  // Category colors
+  needs: '#66BB6A',
+  wants: '#42A5F5',
+  savings: '#AB47BC',
+
+  // UI colors
+  background: '#121212',
+  card: '#1E1E1E',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#B0B0B0',
+  border: '#333333',
+  error: '#EF5350',
+  success: '#66BB6A',
+
+  // Progress bar
+  progressBackground: '#333333',
+  overBudget: '#EF5350',
+};
+
+export const COLORS = LIGHT_COLORS;
 
 export const SPACING = {
   xs: 4,
@@ -71,4 +93,5 @@ export const STORAGE_KEYS = {
   ONBOARDING_COMPLETED: '@budget_onboarding_completed',
   LOCATION: '@budget_location',
   LANGUAGE: '@budget_language',
+  THEME: '@budget_theme',
 } as const;

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/theme';
-import { Expense } from '../types';
+import { Expense, ThemeMode } from '../types';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
 
 export async function saveIncome(income: number): Promise<void> {
@@ -105,6 +105,24 @@ export async function loadOnboardingCompleted(): Promise<boolean> {
   }
 }
 
+export async function saveTheme(theme: ThemeMode): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.THEME, theme);
+  } catch (error) {
+    console.error('Error saving theme:', error);
+  }
+}
+
+export async function loadTheme(): Promise<ThemeMode | null> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.THEME);
+    return value as ThemeMode | null;
+  } catch (error) {
+    console.error('Error loading theme:', error);
+    return null;
+  }
+}
+
 export async function clearAllData(): Promise<void> {
   try {
     await AsyncStorage.multiRemove([
@@ -115,6 +133,7 @@ export async function clearAllData(): Promise<void> {
       STORAGE_KEYS.ONBOARDING_COMPLETED,
       STORAGE_KEYS.LOCATION,
       STORAGE_KEYS.LANGUAGE,
+      STORAGE_KEYS.THEME,
     ]);
   } catch (error) {
     console.error('Error clearing data:', error);

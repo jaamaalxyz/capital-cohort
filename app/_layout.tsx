@@ -5,13 +5,15 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ActivityIndicator, View } from 'react-native';
 import { I18nextProvider } from 'react-i18next';
 import { BudgetProvider, useBudget } from '../context/BudgetContext';
-import { COLORS } from '../constants/theme';
+import { ThemeProvider, useTheme } from '../context/ThemeContext';
+import { LIGHT_COLORS } from '../constants/theme';
 import i18n, { initI18n } from '../i18n';
 import '../i18n/types';
 import { useSegments, useRouter } from 'expo-router';
 
 function AppContent() {
   const { state } = useBudget();
+  const { colors, isDark } = useTheme();
   const segments = useSegments();
   const router = useRouter();
 
@@ -36,31 +38,34 @@ function AppContent() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: COLORS.background,
+          backgroundColor: colors.background,
         }}
       >
-        <ActivityIndicator size="large" color={COLORS.needs} />
+        <ActivityIndicator size="large" color={colors.needs} />
       </View>
     );
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: COLORS.background },
-      }}
-    >
-      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="add-expense"
-        options={{
-          presentation: 'modal',
-          animation: 'slide_from_bottom',
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
         }}
-      />
-    </Stack>
+      >
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="add-expense"
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+          }}
+        />
+      </Stack>
+    </>
   );
 }
 
@@ -80,22 +85,23 @@ export default function RootLayout() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: COLORS.background,
+          backgroundColor: LIGHT_COLORS.background,
         }}
       >
-        <ActivityIndicator size="large" color={COLORS.needs} />
+        <ActivityIndicator size="large" color={LIGHT_COLORS.needs} />
       </View>
     );
   }
 
   return (
     <I18nextProvider i18n={i18n}>
-      <SafeAreaProvider>
-        <BudgetProvider>
-          <StatusBar style="dark" />
-          <AppContent />
-        </BudgetProvider>
-      </SafeAreaProvider>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <BudgetProvider>
+            <AppContent />
+          </BudgetProvider>
+        </SafeAreaProvider>
+      </ThemeProvider>
     </I18nextProvider>
   );
 }

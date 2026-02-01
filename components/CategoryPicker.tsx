@@ -2,12 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Category } from '../types';
-import {
-  COLORS,
-  SPACING,
-  FONT_SIZE,
-  CATEGORY_CONFIG,
-} from '../constants/theme';
+import { SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 interface CategoryPickerProps {
   selected: Category | null;
@@ -18,6 +14,9 @@ const categories: Category[] = ['needs', 'wants', 'savings'];
 
 export function CategoryPicker({ selected, onSelect }: CategoryPickerProps) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.container}>
@@ -31,14 +30,16 @@ export function CategoryPicker({ selected, onSelect }: CategoryPickerProps) {
             style={[
               styles.option,
               isSelected && {
-                borderColor: config.color,
-                backgroundColor: config.color + '10',
+                borderColor: colors[category],
+                backgroundColor: colors[category] + '10',
               },
             ]}
             onPress={() => onSelect(category)}
           >
             <Text style={styles.icon}>{config.icon}</Text>
-            <Text style={[styles.label, isSelected && { color: config.color }]}>
+            <Text
+              style={[styles.label, isSelected && { color: colors[category] }]}
+            >
               {t(`categories.${category}`).toUpperCase()}
             </Text>
             <Text style={styles.description} numberOfLines={2}>
@@ -51,29 +52,30 @@ export function CategoryPicker({ selected, onSelect }: CategoryPickerProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: SPACING.sm,
-  },
-  option: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    padding: SPACING.md,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-  },
-  icon: {
-    fontSize: 24,
-    marginBottom: SPACING.xs,
-  },
-  label: {
-    fontSize: FONT_SIZE.h3,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-  },
-  description: {
-    fontSize: FONT_SIZE.caption,
-    color: COLORS.textSecondary,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      gap: SPACING.sm,
+    },
+    option: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: SPACING.md,
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
+    icon: {
+      fontSize: 24,
+      marginBottom: SPACING.xs,
+    },
+    label: {
+      fontSize: FONT_SIZE.h3,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      marginBottom: SPACING.xs,
+    },
+    description: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.textSecondary,
+    },
+  });

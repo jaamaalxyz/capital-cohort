@@ -16,7 +16,8 @@ import { useBudget } from '../context/BudgetContext';
 import { AmountInput } from '../components/AmountInput';
 import { CategoryPicker } from '../components/CategoryPicker';
 import { Category, Expense } from '../types';
-import { COLORS, SPACING, FONT_SIZE } from '../constants/theme';
+import { SPACING, FONT_SIZE } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { generateId, getToday, formatDate } from '../utils/formatters';
 import { validateExpense } from '../utils/validation';
 import { getCurrencyByCode } from '../constants/currencies';
@@ -25,6 +26,9 @@ export default function AddExpenseScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { addExpense, state } = useBudget();
+  const { colors } = useTheme();
+
+  const styles = createStyles(colors);
   const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
 
   const [amount, setAmount] = useState(0);
@@ -136,7 +140,7 @@ export default function AddExpenseScreen() {
               setErrors((prev) => ({ ...prev, description: '' }));
             }}
             placeholder={t('addExpense.descriptionPlaceholder')}
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={colors.textSecondary}
             maxLength={100}
           />
           {errors.description && (
@@ -190,99 +194,100 @@ export default function AddExpenseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    backgroundColor: COLORS.card,
-  },
-  closeButton: {
-    fontSize: 24,
-    color: COLORS.textSecondary,
-    fontWeight: '300',
-  },
-  title: {
-    fontSize: FONT_SIZE.h2,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  placeholder: {
-    width: 24,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: SPACING.lg,
-  },
-  field: {
-    marginBottom: SPACING.lg,
-  },
-  label: {
-    fontSize: FONT_SIZE.caption,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
-    letterSpacing: 0.5,
-  },
-  textInput: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textPrimary,
-  },
-  textInputError: {
-    borderColor: COLORS.error,
-  },
-  errorText: {
-    fontSize: FONT_SIZE.caption,
-    color: COLORS.error,
-    marginTop: SPACING.xs,
-  },
-  dateDisplay: {
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
-  },
-  dateText: {
-    fontSize: FONT_SIZE.body,
-    color: COLORS.textPrimary,
-  },
-  footer: {
-    padding: SPACING.lg,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    backgroundColor: COLORS.card,
-  },
-  submitButton: {
-    backgroundColor: COLORS.needs,
-    borderRadius: 12,
-    paddingVertical: SPACING.md,
-    alignItems: 'center',
-  },
-  submitButtonPressed: {
-    opacity: 0.9,
-  },
-  submitButtonText: {
-    fontSize: FONT_SIZE.body,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    closeButton: {
+      fontSize: 24,
+      color: colors.textSecondary,
+      fontWeight: '300',
+    },
+    title: {
+      fontSize: FONT_SIZE.h2,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    placeholder: {
+      width: 24,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: SPACING.lg,
+    },
+    field: {
+      marginBottom: SPACING.lg,
+    },
+    label: {
+      fontSize: FONT_SIZE.caption,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      marginBottom: SPACING.sm,
+      letterSpacing: 0.5,
+    },
+    textInput: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: colors.border,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.md,
+      fontSize: FONT_SIZE.body,
+      color: colors.textPrimary,
+    },
+    textInputError: {
+      borderColor: colors.error,
+    },
+    errorText: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.error,
+      marginTop: SPACING.xs,
+    },
+    dateDisplay: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderColor: colors.border,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.md,
+    },
+    dateText: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textPrimary,
+    },
+    footer: {
+      padding: SPACING.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    submitButton: {
+      backgroundColor: colors.needs,
+      borderRadius: 12,
+      paddingVertical: SPACING.md,
+      alignItems: 'center',
+    },
+    submitButtonPressed: {
+      opacity: 0.9,
+    },
+    submitButtonText: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '600',
+      color: '#FFFFFF',
+      letterSpacing: 0.5,
+    },
+  });

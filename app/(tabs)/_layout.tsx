@@ -3,19 +3,25 @@ import { Tabs } from 'expo-router';
 import { Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { colors } = useTheme();
+
+  const styles = createStyles(colors);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.needs,
-        tabBarInactiveTintColor: COLORS.textSecondary,
-        tabBarStyle: [styles.tabBar, { height: 60 + insets.bottom, paddingBottom: insets.bottom }],
+        tabBarActiveTintColor: colors.needs,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: [
+          styles.tabBar,
+          { height: 60 + insets.bottom, paddingBottom: insets.bottom },
+        ],
         tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
@@ -50,17 +56,18 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: COLORS.card,
-    borderTopColor: COLORS.border,
-    paddingTop: 8,
-  },
-  tabBarLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  tabIcon: {
-    fontSize: 20,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    tabBar: {
+      backgroundColor: colors.card,
+      borderTopColor: colors.border,
+      paddingTop: 8,
+    },
+    tabBarLabel: {
+      fontSize: 12,
+      fontWeight: '500',
+    },
+    tabIcon: {
+      fontSize: 20,
+    },
+  });
