@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/theme';
-import { Expense, ThemeMode } from '../types';
+import { Expense, RecurringTemplate, ThemeMode } from '../types';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
 
 export async function saveIncome(income: number): Promise<void> {
@@ -105,6 +105,24 @@ export async function loadOnboardingCompleted(): Promise<boolean> {
   }
 }
 
+export async function saveRecurringTemplates(templates: RecurringTemplate[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.RECURRING_TEMPLATES, JSON.stringify(templates));
+  } catch (error) {
+    console.error('Error saving recurring templates:', error);
+  }
+}
+
+export async function loadRecurringTemplates(): Promise<RecurringTemplate[]> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.RECURRING_TEMPLATES);
+    return value ? JSON.parse(value) : [];
+  } catch (error) {
+    console.error('Error loading recurring templates:', error);
+    return [];
+  }
+}
+
 export async function saveTheme(theme: ThemeMode): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.THEME, theme);
@@ -134,6 +152,7 @@ export async function clearAllData(): Promise<void> {
       STORAGE_KEYS.LOCATION,
       STORAGE_KEYS.LANGUAGE,
       STORAGE_KEYS.THEME,
+      STORAGE_KEYS.RECURRING_TEMPLATES,
     ]);
   } catch (error) {
     console.error('Error clearing data:', error);

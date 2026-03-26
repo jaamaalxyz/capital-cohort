@@ -29,9 +29,14 @@ export function ExpenseItem({
         <View style={styles.left}>
           <Text style={styles.icon}>{config.icon}</Text>
           <View style={styles.details}>
-            <Text style={styles.description} numberOfLines={1}>
-              {expense.description}
-            </Text>
+            <View style={styles.descriptionRow}>
+              <Text style={styles.description} numberOfLines={1}>
+                {expense.description}
+              </Text>
+              {expense.recurringTemplateId && (
+                <Text testID="recurring-badge" style={styles.recurringBadge}>↻</Text>
+              )}
+            </View>
             <Text
               style={[styles.category, { color: colors[expense.category] }]}
             >
@@ -88,10 +93,20 @@ const createStyles = (colors: any) =>
     details: {
       flex: 1,
     },
+    descriptionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
     description: {
       fontSize: FONT_SIZE.body,
       color: colors.textPrimary,
       fontWeight: '500',
+      flexShrink: 1,
+    },
+    recurringBadge: {
+      fontSize: 13,
+      color: colors.textSecondary,
     },
     category: {
       fontSize: FONT_SIZE.caption,
