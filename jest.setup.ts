@@ -3,6 +3,32 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
+// Mock react-native-svg (convert SVG elements to testable RN views/text)
+jest.mock('react-native-svg', () => {
+  const React = require('react');
+  const { View, Text } = require('react-native');
+
+  const svgEl = (testIDKey = 'testID') =>
+    ({ children, testID, ...rest }: any) =>
+      React.createElement(View, { testID: testID ?? rest[testIDKey] }, children);
+
+  const SvgText = ({ children, testID }: any) =>
+    React.createElement(Text, { testID }, children);
+
+  return {
+    __esModule: true,
+    default: svgEl(),
+    Svg: svgEl(),
+    Rect: svgEl(),
+    Path: svgEl(),
+    Circle: svgEl(),
+    G: svgEl(),
+    Text: SvgText,
+    Defs: svgEl(),
+    ClipPath: svgEl(),
+  };
+});
+
 // Mock expo-location
 jest.mock('expo-location', () => ({
   requestForegroundPermissionsAsync: jest.fn(() =>

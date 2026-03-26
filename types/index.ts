@@ -90,3 +90,23 @@ export interface ValidationResult {
   isValid: boolean;
   error?: string;
 }
+
+export interface MonthlySnapshot {
+  month: string;    // YYYY-MM
+  needs: number;    // cents spent
+  wants: number;
+  savings: number;
+  total: number;
+}
+
+export interface ReportData {
+  snapshots: MonthlySnapshot[];   // last N months, oldest first
+  currentMonthBreakdown: {
+    needs: number;
+    wants: number;
+    savings: number;
+  };
+  averageDailySpend: number;      // cents
+  topCategory: Category | null;
+  totalSpentAllTime: number;
+}
