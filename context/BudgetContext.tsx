@@ -89,6 +89,7 @@ interface BudgetContextType {
   setLocation: (location: LocationPreference | undefined) => void;
   completeOnboarding: () => void;
   resetAll: () => void;
+  loadData: (payload: Partial<BudgetState>) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
@@ -204,6 +205,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'RESET_ALL' });
   };
 
+  const loadData = (payload: Partial<BudgetState>) => {
+    dispatch({ type: 'LOAD_DATA', payload });
+  };
+
   return (
     <BudgetContext.Provider
       value={{
@@ -218,6 +223,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         setLocation,
         completeOnboarding,
         resetAll,
+        loadData,
       }}
     >
       {children}

@@ -15,6 +15,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as Location from 'expo-location';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useBudget } from '../../context/BudgetContext';
@@ -31,11 +34,13 @@ import {
   changeLanguage,
   getCurrentLanguage,
 } from '../../i18n';
+import { expensesToCSV, expensesToJSON, buildExportFilename } from '../../utils/exportData';
+import { parseImportJSON } from '../../utils/importData';
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { state, setIncome, setCurrency, setLocation, resetAll } = useBudget();
+  const { state, setIncome, setCurrency, setLocation, resetAll, loadData } = useBudget();
   const { colors, isDark } = useTheme();
   const [incomeValue, setIncomeValue] = useState(state.monthlyIncome);
   const [isLocating, setIsLocating] = useState(false);
@@ -86,6 +91,60 @@ export default function SettingsScreen() {
   const handleIncomeChange = (value: number) => {
     setIncomeValue(value);
     setIncome(value);
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const csv = expensesToCSV(state.expenses);
+      const filename = buildExportFilename('csv', state.currentMonth);
+      const uri = (FileSystem.cacheDirectory ?? '/tmp/') + filename;
+      await FileSystem.writeAsStringAsync(uri, csv);
+      await Sharing.shareAsync(uri, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' });
+    } catch (err) {
+      Alert.alert('Export Failed', 'Could not export CSV file.');
+    }
+  };
+
+  const handleExportJSON = async () => {
+    try {
+      const json = expensesToJSON(state.expenses, state.currency, state.monthlyIncome);
+      const filename = buildExportFilename('json', state.currentMonth);
+      const uri = (FileSystem.cacheDirectory ?? '/tmp/') + filename;
+      await FileSystem.writeAsStringAsync(uri, json);
+      await Sharing.shareAsync(uri, { mimeType: 'application/json', UTI: 'public.json' });
+    } catch (err) {
+      Alert.alert('Export Failed', 'Could not export backup file.');
+    }
+  };
+
+  const handleImportJSON = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
+      if (result.canceled || !result.assets?.length) return;
+      const uri = result.assets[0].uri;
+      const raw = await FileSystem.readAsStringAsync(uri);
+      const payload = parseImportJSON(raw);
+      Alert.alert(
+        'Restore Backup',
+        'This will replace all current data. Continue?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Restore',
+            style: 'destructive',
+            onPress: () => {
+              loadData({
+                expenses: payload.expenses,
+                monthlyIncome: payload.monthlyIncome,
+                currency: payload.currency,
+              });
+            },
+          },
+        ]
+      );
+    } catch (err: any) {
+      Alert.alert('Import Failed', err?.message ?? 'Could not restore backup.');
+    }
   };
 
   const handleReset = () => {
@@ -463,6 +522,43 @@ export default function SettingsScreen() {
             </View>
           </View>
 
+          {/* Export & Backup */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Export & Backup</Text>
+            <Pressable
+              testID="export-csv-btn"
+              style={({ pressed }) => [
+                styles.exportButton,
+                pressed && styles.exportButtonPressed,
+              ]}
+              onPress={handleExportCSV}
+            >
+              <Text style={styles.exportButtonText}>Export This Month (CSV)</Text>
+            </Pressable>
+            <Pressable
+              testID="export-json-btn"
+              style={({ pressed }) => [
+                styles.exportButton,
+                pressed && styles.exportButtonPressed,
+                { marginTop: SPACING.sm },
+              ]}
+              onPress={handleExportJSON}
+            >
+              <Text style={styles.exportButtonText}>Export All Data (JSON)</Text>
+            </Pressable>
+            <Pressable
+              testID="import-json-btn"
+              style={({ pressed }) => [
+                styles.exportButton,
+                pressed && styles.exportButtonPressed,
+                { marginTop: SPACING.sm },
+              ]}
+              onPress={handleImportJSON}
+            >
+              <Text style={styles.exportButtonText}>Restore from Backup</Text>
+            </Pressable>
+          </View>
+
           {/* Danger Zone */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, styles.dangerTitle]}>
@@ -769,6 +865,22 @@ const createStyles = (colors: any) =>
       lineHeight: 20,
     },
     ruleBold: {
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    exportButton: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: SPACING.md,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    exportButtonPressed: {
+      opacity: 0.7,
+    },
+    exportButtonText: {
+      fontSize: FONT_SIZE.body,
       fontWeight: '600',
       color: colors.textPrimary,
     },

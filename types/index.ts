@@ -110,3 +110,13 @@ export interface ReportData {
   topCategory: Category | null;
   totalSpentAllTime: number;
 }
+
+export interface ExportPayload {
+  version: number;        // schema version for future migrations
+  exportedAt: string;     // ISO datetime
+  currency: string;
+  monthlyIncome: number;
+  expenses: Expense[];
+}
+
+export type ExportFormat = 'csv' | 'json';
