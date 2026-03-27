@@ -489,6 +489,25 @@ export default function SettingsScreen() {
             <ThemePicker />
           </View>
 
+          {/* Recurring Expenses */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Recurring Expenses</Text>
+            <Pressable
+              testID="manage-recurring-btn"
+              style={({ pressed }) => [
+                styles.currencyDisplay,
+                pressed && styles.currencyDisplayPressed,
+              ]}
+              onPress={() => router.push('/recurring')}
+            >
+              <View style={styles.currencyDisplayLeft}>
+                <Text style={styles.currencyDisplayText}>Manage Recurring Expenses</Text>
+                <Text style={styles.currencyDisplayName}>Auto-log monthly bills & subscriptions</Text>
+              </View>
+              <Text style={styles.editIcon}>›</Text>
+            </Pressable>
+          </View>
+
           {/* Budget Rule Info */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('settings.rule503020')}</Text>

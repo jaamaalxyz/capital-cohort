@@ -12,6 +12,7 @@ import {
   Expense,
   BudgetSummary,
   LocationPreference,
+  RecurringTemplate,
 } from '../types';
 import { getCurrentMonth } from '../utils/formatters';
 import {
@@ -26,7 +27,10 @@ import {
   loadLocation,
   saveOnboardingCompleted,
   loadOnboardingCompleted,
+  saveRecurringTemplates,
+  loadRecurringTemplates,
 } from '../utils/storage';
+import { materializeAllForMonth } from '../utils/recurringExpenses';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
 import {
   calculateBudgetSummary,
@@ -41,6 +45,7 @@ const initialState: BudgetState = {
   currency: DEFAULT_CURRENCY,
   location: undefined,
   onboardingCompleted: false,
+  recurringTemplates: [],
 };
 
 function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
@@ -66,6 +71,26 @@ function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
       return { ...state, location: action.payload };
     case 'COMPLETE_ONBOARDING':
       return { ...state, onboardingCompleted: true };
+    case 'ADD_RECURRING_TEMPLATE':
+      return { ...state, recurringTemplates: [...state.recurringTemplates, action.payload] };
+    case 'UPDATE_RECURRING_TEMPLATE':
+      return {
+        ...state,
+        recurringTemplates: state.recurringTemplates.map((t) =>
+          t.id === action.payload.id ? action.payload : t
+        ),
+      };
+    case 'DELETE_RECURRING_TEMPLATE':
+      return {
+        ...state,
+        recurringTemplates: state.recurringTemplates.filter((t) => t.id !== action.payload),
+      };
+    case 'MATERIALIZE_RECURRING':
+      return {
+        ...state,
+        expenses: [...state.expenses, ...action.payload.expenses],
+        recurringTemplates: action.payload.templates,
+      };
     case 'RESET_ALL':
       return {
         ...initialState,
@@ -90,6 +115,9 @@ interface BudgetContextType {
   completeOnboarding: () => void;
   resetAll: () => void;
   loadData: (payload: Partial<BudgetState>) => void;
+  addRecurringTemplate: (template: RecurringTemplate) => void;
+  updateRecurringTemplate: (template: RecurringTemplate) => void;
+  deleteRecurringTemplate: (id: string) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
@@ -101,13 +129,14 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function loadData() {
       try {
-        const [income, expenses, currency, location, onboardingCompleted] =
+        const [income, expenses, currency, location, onboardingCompleted, recurringTemplates] =
           await Promise.all([
             loadIncome(),
             loadExpenses(),
             loadCurrency(),
             loadLocation(),
             loadOnboardingCompleted(),
+            loadRecurringTemplates(),
           ]);
         dispatch({
           type: 'LOAD_DATA',
@@ -117,6 +146,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
             currency,
             location,
             onboardingCompleted,
+            recurringTemplates,
           },
         });
       } catch (error) {
@@ -161,6 +191,29 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       saveOnboardingCompleted(state.onboardingCompleted);
     }
   }, [state.onboardingCompleted, state.isLoading]);
+
+  // Save recurring templates when they change
+  useEffect(() => {
+    if (!state.isLoading) {
+      saveRecurringTemplates(state.recurringTemplates);
+    }
+  }, [state.recurringTemplates, state.isLoading]);
+
+  // Materialize recurring templates after load
+  useEffect(() => {
+    if (!state.isLoading) {
+      const { newExpenses, updatedTemplates } = materializeAllForMonth(
+        state.recurringTemplates,
+        state.currentMonth
+      );
+      if (newExpenses.length > 0) {
+        dispatch({
+          type: 'MATERIALIZE_RECURRING',
+          payload: { expenses: newExpenses, templates: updatedTemplates },
+        });
+      }
+    }
+  }, [state.isLoading, state.currentMonth]);
 
   const currentMonthExpenses = useMemo(
     () => getExpensesForMonth(state.expenses, state.currentMonth),
@@ -209,6 +262,18 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'LOAD_DATA', payload });
   };
 
+  const addRecurringTemplate = (template: RecurringTemplate) => {
+    dispatch({ type: 'ADD_RECURRING_TEMPLATE', payload: template });
+  };
+
+  const updateRecurringTemplate = (template: RecurringTemplate) => {
+    dispatch({ type: 'UPDATE_RECURRING_TEMPLATE', payload: template });
+  };
+
+  const deleteRecurringTemplate = (id: string) => {
+    dispatch({ type: 'DELETE_RECURRING_TEMPLATE', payload: id });
+  };
+
   return (
     <BudgetContext.Provider
       value={{
@@ -224,6 +289,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         completeOnboarding,
         resetAll,
         loadData,
+        addRecurringTemplate,
+        updateRecurringTemplate,
+        deleteRecurringTemplate,
       }}
     >
       {children}

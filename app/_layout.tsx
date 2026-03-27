@@ -64,6 +64,14 @@ function AppContent() {
             animation: 'slide_from_bottom',
           }}
         />
+        <Stack.Screen
+          name="recurring"
+          options={{ presentation: 'card', title: 'Recurring Expenses', headerShown: true }}
+        />
+        <Stack.Screen
+          name="add-recurring"
+          options={{ presentation: 'modal', title: 'Add Recurring', headerShown: true }}
+        />
       </Stack>
     </>
   );

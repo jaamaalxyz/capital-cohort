@@ -94,4 +94,5 @@ export const STORAGE_KEYS = {
   LOCATION: '@budget_location',
   LANGUAGE: '@budget_language',
   THEME: '@budget_theme',
+  RECURRING_TEMPLATES: '@budget_recurring_templates',
 } as const;

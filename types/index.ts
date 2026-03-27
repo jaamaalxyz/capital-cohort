@@ -22,6 +22,18 @@ export interface Expense {
   category: Category;
   date: string; // YYYY-MM-DD format
   createdAt: string; // ISO datetime string
+  recurringTemplateId?: string; // links to source RecurringTemplate
+}
+
+export interface RecurringTemplate {
+  id: string;             // UUID v4
+  amount: number;         // cents
+  description: string;
+  category: Category;
+  dayOfMonth: number;     // 1–28 (capped to handle Feb)
+  isActive: boolean;
+  createdAt: string;      // ISO datetime
+  lastMaterializedMonth?: string; // YYYY-MM — tracks last auto-creation
 }
 
 export interface CategoryConfig {
@@ -72,6 +84,7 @@ export interface BudgetState {
   currency: string; // ISO 4217 currency code (e.g., 'USD')
   location?: LocationPreference;
   onboardingCompleted: boolean;
+  recurringTemplates: RecurringTemplate[];
 }
 
 export type BudgetAction =
@@ -84,7 +97,11 @@ export type BudgetAction =
   | { type: 'SET_CURRENCY'; payload: string }
   | { type: 'SET_LOCATION'; payload: LocationPreference | undefined }
   | { type: 'COMPLETE_ONBOARDING' }
-  | { type: 'RESET_ALL' };
+  | { type: 'RESET_ALL' }
+  | { type: 'ADD_RECURRING_TEMPLATE'; payload: RecurringTemplate }
+  | { type: 'UPDATE_RECURRING_TEMPLATE'; payload: RecurringTemplate }
+  | { type: 'DELETE_RECURRING_TEMPLATE'; payload: string }
+  | { type: 'MATERIALIZE_RECURRING'; payload: { expenses: Expense[]; templates: RecurringTemplate[] } };
 
 export interface ValidationResult {
   isValid: boolean;
