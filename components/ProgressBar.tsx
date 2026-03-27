@@ -20,8 +20,9 @@ export function ProgressBar({
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="progress-bar">
       <View style={styles.background}>
+
         <View
           style={[
             styles.fill,

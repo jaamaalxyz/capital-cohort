@@ -50,13 +50,15 @@ jest.mock('expo-localization', () => ({
 }));
 
 // Mock expo-router
+const mockRouterInstance = {
+  push: jest.fn(),
+  back: jest.fn(),
+  replace: jest.fn(),
+  navigate: jest.fn(),
+};
+
 jest.mock('expo-router', () => ({
-  useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    back: jest.fn(),
-    replace: jest.fn(),
-    navigate: jest.fn(),
-  })),
+  useRouter: () => mockRouterInstance,
   useLocalSearchParams: jest.fn(() => ({})),
   useSegments: jest.fn(() => []),
   usePathname: jest.fn(() => '/'),

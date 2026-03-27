@@ -19,6 +19,7 @@ export function ScreenContainer({
     <SafeAreaView
       style={[{ flex: 1, backgroundColor: colors.background }, style]}
       edges={edges}
+      testID="screen-container"
     >
       {children}
     </SafeAreaView>

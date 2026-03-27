@@ -19,7 +19,7 @@ export function CategoryPicker({ selected, onSelect }: CategoryPickerProps) {
   const styles = createStyles(colors);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="category-picker-container">
       {categories.map((category) => {
         const config = CATEGORY_CONFIG[category];
         const isSelected = selected === category;

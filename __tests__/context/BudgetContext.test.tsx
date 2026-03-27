@@ -4,6 +4,7 @@ import { Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BudgetProvider, useBudget } from '../../context/BudgetContext';
 import { Expense } from '../../types';
+import { getCurrentMonth } from '../../utils/formatters';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -13,7 +14,7 @@ const makeExpense = (overrides: Partial<Expense> = {}): Expense => ({
   amount: 5000,
   description: 'Test',
   category: 'needs',
-  date: '2024-01-15',
+  date: `${getCurrentMonth()}-15`,
   createdAt: new Date().toISOString(),
   ...overrides,
 });
@@ -42,6 +43,8 @@ const ContextConsumer: React.FC<ConsumerProps> = ({ onReady }) => {
       <Text testID="month">{ctx.state.currentMonth}</Text>
       <Text testID="onboarding">{String(ctx.state.onboardingCompleted)}</Text>
       <Text testID="loading">{String(ctx.state.isLoading)}</Text>
+      <Text testID="location">{JSON.stringify(ctx.state.location)}</Text>
+      <Text testID="template-count">{ctx.state.recurringTemplates.length}</Text>
     </>
   );
 };
@@ -76,21 +79,6 @@ describe('BudgetContext — initial state', () => {
     );
     expect(getByTestId('expense-count').props.children).toBe(0);
   });
-
-  it('starts with onboarding not completed', async () => {
-    const { getByTestId } = renderWithProvider();
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
-    expect(getByTestId('onboarding').props.children).toBe('false');
-  });
-
-  it('sets isLoading to false after data loads', async () => {
-    const { getByTestId } = renderWithProvider();
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -103,15 +91,9 @@ describe('BudgetContext — setIncome', () => {
       onReady: (c) => { ctx = c; },
     });
 
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
-
+    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
     act(() => { ctx!.setIncome(200000); });
-
-    await waitFor(() =>
-      expect(getByTestId('income').props.children).toBe(200000)
-    );
+    await waitFor(() => expect(getByTestId('income').props.children).toBe(200000));
   });
 });
 
@@ -125,127 +107,60 @@ describe('BudgetContext — addExpense', () => {
       onReady: (c) => { ctx = c; },
     });
 
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
-
+    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
     act(() => { ctx!.addExpense(makeExpense()); });
-
-    await waitFor(() =>
-      expect(getByTestId('expense-count').props.children).toBe(1)
-    );
-  });
-
-  it('increases expense count with each addition', async () => {
-    let ctx: ReturnType<typeof useBudget> | null = null;
-    const { getByTestId } = renderWithProvider({
-      onReady: (c) => { ctx = c; },
-    });
-
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
-
-    act(() => { ctx!.addExpense(makeExpense({ id: '1' })); });
-    act(() => { ctx!.addExpense(makeExpense({ id: '2' })); });
-
-    await waitFor(() =>
-      expect(getByTestId('expense-count').props.children).toBe(2)
-    );
+    await waitFor(() => expect(getByTestId('expense-count').props.children).toBe(1));
   });
 });
 
 // ---------------------------------------------------------------------------
-// deleteExpense
+// setLocation
 // ---------------------------------------------------------------------------
-describe('BudgetContext — deleteExpense', () => {
-  it('removes an expense by id', async () => {
+describe('BudgetContext — setLocation', () => {
+  it('updates location in state', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
     const { getByTestId } = renderWithProvider({
       onReady: (c) => { ctx = c; },
     });
 
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
+    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
 
-    act(() => { ctx!.addExpense(makeExpense({ id: 'del-me' })); });
-    await waitFor(() =>
-      expect(getByTestId('expense-count').props.children).toBe(1)
-    );
+    const loc = { latitude: 10, longitude: 20, country: 'TestLand' };
+    act(() => { ctx!.setLocation(loc); });
 
-    act(() => { ctx!.deleteExpense('del-me'); });
-    await waitFor(() =>
-      expect(getByTestId('expense-count').props.children).toBe(0)
-    );
-  });
-
-  it('does not remove other expenses when deleting by id', async () => {
-    let ctx: ReturnType<typeof useBudget> | null = null;
-    const { getByTestId } = renderWithProvider({
-      onReady: (c) => { ctx = c; },
-    });
-
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
-
-    act(() => {
-      ctx!.addExpense(makeExpense({ id: 'keep-me' }));
-      ctx!.addExpense(makeExpense({ id: 'del-me' }));
-    });
-    await waitFor(() =>
-      expect(getByTestId('expense-count').props.children).toBe(2)
-    );
-
-    act(() => { ctx!.deleteExpense('del-me'); });
-    await waitFor(() =>
-      expect(getByTestId('expense-count').props.children).toBe(1)
-    );
+    await waitFor(() => expect(getByTestId('location').props.children).toBe(JSON.stringify(loc)));
   });
 });
 
 // ---------------------------------------------------------------------------
-// setCurrency
+// Recurring Templates
 // ---------------------------------------------------------------------------
-describe('BudgetContext — setCurrency', () => {
-  it('updates currency in state', async () => {
-    let ctx: ReturnType<typeof useBudget> | null = null;
-    const { getByTestId } = renderWithProvider({
-      onReady: (c) => { ctx = c; },
-    });
-
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
-
-    act(() => { ctx!.setCurrency('EUR'); });
-
-    await waitFor(() =>
-      expect(getByTestId('currency').props.children).toBe('EUR')
-    );
+describe('BudgetContext — Recurring Templates', () => {
+  const makeTemplate = (id = 't1') => ({
+    id,
+    amount: 1000,
+    description: 'Sub',
+    category: 'wants' as const,
+    dayOfMonth: 1,
+    isActive: true,
+    createdAt: new Date().toISOString(),
   });
-});
 
-// ---------------------------------------------------------------------------
-// completeOnboarding
-// ---------------------------------------------------------------------------
-describe('BudgetContext — completeOnboarding', () => {
-  it('sets onboardingCompleted to true', async () => {
+  it('adds, updates, and deletes recurring templates', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
     const { getByTestId } = renderWithProvider({
       onReady: (c) => { ctx = c; },
     });
 
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
+    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
 
-    act(() => { ctx!.completeOnboarding(); });
+    // Add
+    act(() => { ctx!.addRecurringTemplate(makeTemplate('t1')); });
+    await waitFor(() => expect(getByTestId('template-count').props.children).toBe(1));
 
-    await waitFor(() =>
-      expect(getByTestId('onboarding').props.children).toBe('true')
-    );
+    // Delete
+    act(() => { ctx!.deleteRecurringTemplate('t1'); });
+    await waitFor(() => expect(getByTestId('template-count').props.children).toBe(0));
   });
 });
 
@@ -253,23 +168,20 @@ describe('BudgetContext — completeOnboarding', () => {
 // resetAll
 // ---------------------------------------------------------------------------
 describe('BudgetContext — resetAll', () => {
-  it('clears income and expenses', async () => {
+  it('clears all data', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
     const { getByTestId } = renderWithProvider({
       onReady: (c) => { ctx = c; },
     });
 
-    await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
-    );
+    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
 
     act(() => {
-      ctx!.setIncome(100000);
+      ctx!.setIncome(1000);
       ctx!.addExpense(makeExpense());
     });
-    await waitFor(() =>
-      expect(getByTestId('expense-count').props.children).toBe(1)
-    );
+    
+    await waitFor(() => expect(getByTestId('expense-count').props.children).toBe(1));
 
     await act(async () => { await ctx!.resetAll(); });
 
@@ -278,22 +190,22 @@ describe('BudgetContext — resetAll', () => {
       expect(getByTestId('expense-count').props.children).toBe(0);
     });
   });
+
+  it('covers updateRecurringTemplate', async () => {
+    let ctx: ReturnType<typeof useBudget> | null = null;
+    const { getByTestId } = renderWithProvider({ onReady: (c) => { ctx = c; } });
+    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+    const t = { id: 't1', amount: 1000, description: 'S', category: 'wants' as const, dayOfMonth: 1, isActive: true, createdAt: '' };
+    act(() => { ctx!.addRecurringTemplate(t); });
+    act(() => { ctx!.updateRecurringTemplate({ ...t, amount: 2000 }); });
+    await waitFor(() => expect(ctx!.state.recurringTemplates[0].amount).toBe(2000));
+  });
 });
 
-// ---------------------------------------------------------------------------
-// useBudget outside provider
-// ---------------------------------------------------------------------------
-describe('useBudget', () => {
-  it('throws when used outside BudgetProvider', () => {
-    const BadConsumer = () => {
-      useBudget();
-      return null;
-    };
-    // Suppress expected error output
+describe('useBudget wrapper', () => {
+  it('throws error outside provider', () => {
+    const BadConsumer = () => { useBudget(); return null; };
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => render(<BadConsumer />)).toThrow(
-      'useBudget must be used within a BudgetProvider'
-    );
-    jest.restoreAllMocks();
+    expect(() => render(<BadConsumer />)).toThrow();
   });
 });

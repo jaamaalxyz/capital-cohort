@@ -6,12 +6,17 @@ import {
   loadExpenses,
   saveCurrency,
   loadCurrency,
+  saveLocation,
+  loadLocation,
   saveOnboardingCompleted,
   loadOnboardingCompleted,
+  saveRecurringTemplates,
+  loadRecurringTemplates,
   saveTheme,
   loadTheme,
   clearAllData,
 } from '../../utils/storage';
+import { RecurringTemplate } from '../../types';
 import { STORAGE_KEYS } from '../../constants/theme';
 import { Expense } from '../../types';
 
@@ -174,6 +179,139 @@ describe('saveTheme / loadTheme', () => {
       const loaded = await loadTheme();
       expect(loaded).toBe(mode);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Location
+// ---------------------------------------------------------------------------
+describe('saveLocation / loadLocation', () => {
+  it('saves and loads a location object', async () => {
+    const location = { latitude: 23.8, longitude: 90.4, country: 'Bangladesh' };
+    await saveLocation(location);
+    const loaded = await loadLocation();
+    expect(loaded).toEqual(location);
+  });
+
+  it('returns undefined when no location stored', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(null);
+    const loaded = await loadLocation();
+    expect(loaded).toBeUndefined();
+  });
+
+  it('removes location from storage when null is saved', async () => {
+    await saveLocation(null);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith(STORAGE_KEYS.LOCATION);
+  });
+
+  it('removes location from storage when undefined is saved', async () => {
+    await saveLocation(undefined);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith(STORAGE_KEYS.LOCATION);
+  });
+
+  it('returns undefined on storage error', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    const loaded = await loadLocation();
+    expect(loaded).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Recurring Templates
+// ---------------------------------------------------------------------------
+describe('saveRecurringTemplates / loadRecurringTemplates', () => {
+  const makeTemplate = (overrides: Partial<RecurringTemplate> = {}): RecurringTemplate => ({
+    id: 'tmpl-1',
+    amount: 50000,
+    description: 'Rent',
+    category: 'needs',
+    dayOfMonth: 1,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  });
+
+  it('saves and loads recurring templates', async () => {
+    const templates = [makeTemplate()];
+    await saveRecurringTemplates(templates);
+    const loaded = await loadRecurringTemplates();
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0].id).toBe('tmpl-1');
+  });
+
+  it('returns empty array when no templates stored', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(null);
+    const loaded = await loadRecurringTemplates();
+    expect(loaded).toEqual([]);
+  });
+
+  it('saves multiple templates', async () => {
+    const templates = [
+      makeTemplate({ id: 't1' }),
+      makeTemplate({ id: 't2' }),
+    ];
+    await saveRecurringTemplates(templates);
+    const loaded = await loadRecurringTemplates();
+    expect(loaded).toHaveLength(2);
+  });
+
+  it('returns empty array on storage error', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    const loaded = await loadRecurringTemplates();
+    expect(loaded).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Save error paths (coverage for catch blocks)
+// ---------------------------------------------------------------------------
+describe('save functions — error handling', () => {
+  it('saveIncome does not throw on storage error', async () => {
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    await expect(saveIncome(1000)).resolves.not.toThrow();
+  });
+
+  it('saveExpenses does not throw on storage error', async () => {
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    await expect(saveExpenses([])).resolves.not.toThrow();
+  });
+
+  it('saveCurrency does not throw on storage error', async () => {
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    await expect(saveCurrency('USD')).resolves.not.toThrow();
+  });
+
+  it('loadCurrency returns default on storage error', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    const result = await loadCurrency();
+    expect(typeof result).toBe('string');
+  });
+
+  it('saveOnboardingCompleted does not throw on storage error', async () => {
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    await expect(saveOnboardingCompleted(true)).resolves.not.toThrow();
+  });
+
+  it('loadOnboardingCompleted returns false on storage error', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    const result = await loadOnboardingCompleted();
+    expect(result).toBe(false);
+  });
+
+  it('saveTheme does not throw on storage error', async () => {
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    await expect(saveTheme('dark')).resolves.not.toThrow();
+  });
+
+  it('loadTheme returns null on storage error', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    const result = await loadTheme();
+    expect(result).toBeNull();
+  });
+
+  it('clearAllData does not throw on storage error', async () => {
+    (AsyncStorage.multiRemove as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    await expect(clearAllData()).resolves.not.toThrow();
   });
 });
 

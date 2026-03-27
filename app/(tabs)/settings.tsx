@@ -399,6 +399,7 @@ export default function SettingsScreen() {
                 styles.currencyDisplay,
                 pressed && styles.currencyDisplayPressed,
               ]}
+              testID="currency-picker-btn"
               onPress={openCurrencyPicker}
             >
               <View style={styles.currencyDisplayLeft}>
@@ -421,6 +422,7 @@ export default function SettingsScreen() {
                 styles.currencyDisplay,
                 pressed && styles.currencyDisplayPressed,
               ]}
+              testID="language-picker-btn"
               onPress={openLanguagePicker}
             >
               <View style={styles.currencyDisplayLeft}>
@@ -631,6 +633,7 @@ export default function SettingsScreen() {
               onChangeText={setCurrencySearch}
               placeholder={t('settings.searchCurrencies')}
               placeholderTextColor={colors.textSecondary}
+              testID="currency-search-input"
               autoFocus
             />
           </View>
@@ -687,6 +690,7 @@ export default function SettingsScreen() {
               onChangeText={setLanguageSearch}
               placeholder={t('settings.searchLanguages')}
               placeholderTextColor={colors.textSecondary}
+              testID="language-search-input"
               autoFocus
             />
           </View>

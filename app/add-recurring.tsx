@@ -65,7 +65,7 @@ export default function AddRecurringScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={[styles.heading, { color: colors.textPrimary }]}>
+      <Text testID="recurring-heading" style={[styles.heading, { color: colors.textPrimary }]}>
         {existing ? 'Edit Recurring' : 'Add Recurring'}
       </Text>
 
@@ -92,7 +92,7 @@ export default function AddRecurringScreen() {
 
       <View style={styles.section}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>Category</Text>
-        <CategoryPicker selectedCategory={category} onSelectCategory={setCategory} />
+        <CategoryPicker selected={category} onSelect={setCategory} />
       </View>
 
       <View style={styles.section}>
