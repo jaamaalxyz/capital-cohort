@@ -61,32 +61,38 @@ describe('Settings screen — export & backup', () => {
     await waitFor(() => expect(getByTestId('import-json-btn')).toBeTruthy());
   });
 
-  it('calls writeAsStringAsync and shareAsync when Export CSV is pressed', async () => {
+  it('calls File.write and shareAsync when Export CSV is pressed', async () => {
     const { getByTestId } = renderSettings();
     const btn = await waitFor(() => getByTestId('export-csv-btn'));
     fireEvent.press(btn);
     await waitFor(() => {
-      expect(ExpoFileSystem.writeAsStringAsync).toHaveBeenCalled();
+      expect(ExpoFileSystem.File.prototype.write).toHaveBeenCalled();
       expect(ExpoSharing.shareAsync).toHaveBeenCalled();
     });
   });
 
-  it('calls writeAsStringAsync and shareAsync when Export JSON is pressed', async () => {
+  it('calls File.write and shareAsync when Export JSON is pressed', async () => {
     const { getByTestId } = renderSettings();
     const btn = await waitFor(() => getByTestId('export-json-btn'));
     fireEvent.press(btn);
     await waitFor(() => {
-      expect(ExpoFileSystem.writeAsStringAsync).toHaveBeenCalled();
+      expect(ExpoFileSystem.File.prototype.write).toHaveBeenCalled();
       expect(ExpoSharing.shareAsync).toHaveBeenCalled();
     });
   });
 
-  it('calls getDocumentAsync when Import JSON is pressed', async () => {
+  it('calls DocumentPicker and File.text when Import JSON is pressed', async () => {
+    (DocumentPicker.getDocumentAsync as jest.Mock).mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'mock-uri', name: 'backup.json' }],
+    });
+    
     const { getByTestId } = renderSettings();
     const btn = await waitFor(() => getByTestId('import-json-btn'));
     fireEvent.press(btn);
     await waitFor(() => {
       expect(DocumentPicker.getDocumentAsync).toHaveBeenCalled();
+      expect(ExpoFileSystem.File.prototype.text).toHaveBeenCalled();
     });
   });
 });

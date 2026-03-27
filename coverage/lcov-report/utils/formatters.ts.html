@@ -30,9 +30,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">64.7% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>11/17</span>
+                <span class='fraction'>17/17</span>
             </div>
         
             
@@ -135,16 +135,16 @@
 <a name='L70'></a><a href='#L70'>70</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">189x</span>
-<span class="cline-any cline-yes">189x</span>
-<span class="cline-any cline-yes">189x</span>
+<span class="cline-any cline-yes">192x</span>
+<span class="cline-any cline-yes">192x</span>
+<span class="cline-any cline-yes">192x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">189x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">192x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">189x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">192x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -159,18 +159,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-yes">26x</span>
-<span class="cline-any cline-yes">26x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">23x</span>
-<span class="cline-any cline-yes">23x</span>
-<span class="cline-any cline-yes">23x</span>
-<span class="cline-any cline-yes">23x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -178,35 +178,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">44x</span>
-<span class="cline-any cline-yes">44x</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-yes">434x</span>
-<span class="cline-any cline-yes">434x</span>
-<span class="cline-any cline-yes">434x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">465x</span>
+<span class="cline-any cline-yes">465x</span>
+<span class="cline-any cline-yes">465x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import i18n from '../i18n';
 &nbsp;
 export function formatCurrency(cents: number, symbol: string = '$'): string {
   const amount = cents / 100;
-  const currentLang = i18n.language || <span class="branch-1 cbranch-no" title="branch not covered" >'en';</span>
-  const locale = currentLang === 'bn' ? <span class="branch-0 cbranch-no" title="branch not covered" >'bn-BD' </span>: currentLang;
+  const currentLang = i18n.language || 'en';
+  const locale = currentLang === 'bn' ? 'bn-BD' : currentLang;
 &nbsp;
   const formattedAmount = new Intl.NumberFormat(locale, {
     minimumFractionDigits: 2,
@@ -230,15 +230,15 @@ export function getCurrentMonth(): string {
 export function formatMonth(month: string): string {
   const [year, monthNum] = month.split('-');
   const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-  const currentLang = i18n.language || <span class="branch-1 cbranch-no" title="branch not covered" >'en';</span>
-  const locale = currentLang === 'bn' ? <span class="branch-0 cbranch-no" title="branch not covered" >'bn-BD' </span>: currentLang;
+  const currentLang = i18n.language || 'en';
+  const locale = currentLang === 'bn' ? 'bn-BD' : currentLang;
   return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 &nbsp;
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  const currentLang = i18n.language || <span class="branch-1 cbranch-no" title="branch not covered" >'en';</span>
-  const locale = currentLang === 'bn' ? <span class="branch-0 cbranch-no" title="branch not covered" >'bn-BD' </span>: currentLang;
+  const currentLang = i18n.language || 'en';
+  const locale = currentLang === 'bn' ? 'bn-BD' : currentLang;
   return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
@@ -277,7 +277,7 @@ export function getNextMonth(month: string): string {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-27T00:54:35.185Z
+                at 2026-03-27T02:51:17.838Z
             </div>
         <script src="../prettify.js"></script>
         <script>

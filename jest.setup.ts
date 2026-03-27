@@ -96,7 +96,30 @@ jest.mock('expo-sharing', () => ({
 }));
 
 // Mock expo-file-system
+class MockDirectory {
+  uri: string;
+  constructor(...parts: any[]) {
+    this.uri = parts.join('/');
+  }
+}
+
+class MockFile {
+  uri: string;
+  constructor(...parts: any[]) {
+    this.uri = parts.join('/');
+  }
+}
+(MockFile.prototype as any).write = jest.fn();
+(MockFile.prototype as any).text = jest.fn(() => Promise.resolve(''));
+
 jest.mock('expo-file-system', () => ({
+  Paths: {
+    cache: { uri: '/mock-cache/' },
+    document: { uri: '/mock-doc/' },
+    join: (...args: string[]) => args.join('/'),
+  },
+  File: MockFile,
+  Directory: MockDirectory,
   cacheDirectory: '/mock-cache/',
   writeAsStringAsync: jest.fn(() => Promise.resolve()),
   readAsStringAsync: jest.fn(() => Promise.resolve('')),

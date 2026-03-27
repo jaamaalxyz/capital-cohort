@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import { Paths, File } from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -34,13 +34,18 @@ import {
   changeLanguage,
   getCurrentLanguage,
 } from '../../i18n';
-import { expensesToCSV, expensesToJSON, buildExportFilename } from '../../utils/exportData';
+import {
+  expensesToCSV,
+  expensesToJSON,
+  buildExportFilename,
+} from '../../utils/exportData';
 import { parseImportJSON } from '../../utils/importData';
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { state, setIncome, setCurrency, setLocation, resetAll, loadData } = useBudget();
+  const { state, setIncome, setCurrency, setLocation, resetAll, loadData } =
+    useBudget();
   const { colors, isDark } = useTheme();
   const [incomeValue, setIncomeValue] = useState(state.monthlyIncome);
   const [isLocating, setIsLocating] = useState(false);
@@ -97,9 +102,13 @@ export default function SettingsScreen() {
     try {
       const csv = expensesToCSV(state.expenses);
       const filename = buildExportFilename('csv', state.currentMonth);
-      const uri = (FileSystem.cacheDirectory ?? '/tmp/') + filename;
-      await FileSystem.writeAsStringAsync(uri, csv);
-      await Sharing.shareAsync(uri, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' });
+      const file = new File(Paths.cache, filename);
+      // Modern SDK 55 API treats .write() as synchronous for fast Shared Objects
+      file.write(csv);
+      await Sharing.shareAsync(file.uri, {
+        mimeType: 'text/csv',
+        UTI: 'public.comma-separated-values-text',
+      });
     } catch (err) {
       Alert.alert('Export Failed', 'Could not export CSV file.');
     }
@@ -107,11 +116,18 @@ export default function SettingsScreen() {
 
   const handleExportJSON = async () => {
     try {
-      const json = expensesToJSON(state.expenses, state.currency, state.monthlyIncome);
+      const json = expensesToJSON(
+        state.expenses,
+        state.currency,
+        state.monthlyIncome,
+      );
       const filename = buildExportFilename('json', state.currentMonth);
-      const uri = (FileSystem.cacheDirectory ?? '/tmp/') + filename;
-      await FileSystem.writeAsStringAsync(uri, json);
-      await Sharing.shareAsync(uri, { mimeType: 'application/json', UTI: 'public.json' });
+      const file = new File(Paths.cache, filename);
+      file.write(json);
+      await Sharing.shareAsync(file.uri, {
+        mimeType: 'application/json',
+        UTI: 'public.json',
+      });
     } catch (err) {
       Alert.alert('Export Failed', 'Could not export backup file.');
     }
@@ -119,10 +135,13 @@ export default function SettingsScreen() {
 
   const handleImportJSON = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+      });
       if (result.canceled || !result.assets?.length) return;
       const uri = result.assets[0].uri;
-      const raw = await FileSystem.readAsStringAsync(uri);
+      const file = new File(uri);
+      const raw = await file.text();
       const payload = parseImportJSON(raw);
       Alert.alert(
         'Restore Backup',
@@ -140,7 +159,7 @@ export default function SettingsScreen() {
               });
             },
           },
-        ]
+        ],
       );
     } catch (err: any) {
       Alert.alert('Import Failed', err?.message ?? 'Could not restore backup.');
@@ -503,8 +522,12 @@ export default function SettingsScreen() {
               onPress={() => router.push('/recurring')}
             >
               <View style={styles.currencyDisplayLeft}>
-                <Text style={styles.currencyDisplayText}>Manage Recurring Expenses</Text>
-                <Text style={styles.currencyDisplayName}>Auto-log monthly bills & subscriptions</Text>
+                <Text style={styles.currencyDisplayText}>
+                  Manage Recurring Expenses
+                </Text>
+                <Text style={styles.currencyDisplayName}>
+                  Auto-log monthly bills & subscriptions
+                </Text>
               </View>
               <Text style={styles.editIcon}>›</Text>
             </Pressable>
@@ -554,7 +577,9 @@ export default function SettingsScreen() {
               ]}
               onPress={handleExportCSV}
             >
-              <Text style={styles.exportButtonText}>Export This Month (CSV)</Text>
+              <Text style={styles.exportButtonText}>
+                Export This Month (CSV)
+              </Text>
             </Pressable>
             <Pressable
               testID="export-json-btn"
@@ -565,7 +590,9 @@ export default function SettingsScreen() {
               ]}
               onPress={handleExportJSON}
             >
-              <Text style={styles.exportButtonText}>Export All Data (JSON)</Text>
+              <Text style={styles.exportButtonText}>
+                Export All Data (JSON)
+              </Text>
             </Pressable>
             <Pressable
               testID="import-json-btn"
