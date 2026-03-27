@@ -87,6 +87,28 @@ jest.mock('i18next', () => ({
   },
 }));
 
+// Mock expo-sharing
+jest.mock('expo-sharing', () => ({
+  shareAsync: jest.fn(() => Promise.resolve()),
+  isAvailableAsync: jest.fn(() => Promise.resolve(true)),
+}));
+
+// Mock expo-file-system
+jest.mock('expo-file-system', () => ({
+  cacheDirectory: '/mock-cache/',
+  writeAsStringAsync: jest.fn(() => Promise.resolve()),
+  readAsStringAsync: jest.fn(() => Promise.resolve('')),
+  deleteAsync: jest.fn(() => Promise.resolve()),
+  EncodingType: { UTF8: 'utf8', Base64: 'base64' },
+}));
+
+// Mock expo-document-picker
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn(() =>
+    Promise.resolve({ canceled: true, assets: null })
+  ),
+}));
+
 // Silence noisy act() warnings during tests
 const originalConsoleError = console.error;
 global.console.error = (...args: unknown[]) => {

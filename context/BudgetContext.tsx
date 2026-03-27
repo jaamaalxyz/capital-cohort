@@ -114,6 +114,7 @@ interface BudgetContextType {
   setLocation: (location: LocationPreference | undefined) => void;
   completeOnboarding: () => void;
   resetAll: () => void;
+  loadData: (payload: Partial<BudgetState>) => void;
   addRecurringTemplate: (template: RecurringTemplate) => void;
   updateRecurringTemplate: (template: RecurringTemplate) => void;
   deleteRecurringTemplate: (id: string) => void;
@@ -257,6 +258,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'RESET_ALL' });
   };
 
+  const loadData = (payload: Partial<BudgetState>) => {
+    dispatch({ type: 'LOAD_DATA', payload });
+  };
+
   const addRecurringTemplate = (template: RecurringTemplate) => {
     dispatch({ type: 'ADD_RECURRING_TEMPLATE', payload: template });
   };
@@ -283,6 +288,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         setLocation,
         completeOnboarding,
         resetAll,
+        loadData,
         addRecurringTemplate,
         updateRecurringTemplate,
         deleteRecurringTemplate,
