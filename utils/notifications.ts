@@ -5,14 +5,14 @@ import {
   buildOverBudgetMessage,
   buildDailyReminderMessage,
   buildMonthEndSummaryMessage,
-  buildWeeklyDigestMessage
+  buildWeeklyDigestMessage,
 } from './notificationMessages';
 import { BudgetSummary } from '../types';
 
-// Scheduling APIs are native-only — expo-notifications does not support web
+// Scheduling APIs are native-only — web uses the browser Notification API
 const isNative = Platform.OS !== 'web';
 
-// Configure how notifications are handled in the foreground (native only)
+// Configure foreground notification handling (native only)
 if (isNative) {
   ExpoNotifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -25,26 +25,65 @@ if (isNative) {
   });
 }
 
+// --- Web helpers ---
+
+async function webShowNotification(title: string, body: string): Promise<void> {
+  if (Notification.permission !== 'granted') return;
+  const reg = await navigator.serviceWorker?.ready.catch(() => null);
+  if (reg) {
+    reg.showNotification(title, { body, icon: '/assets/icon.png' });
+  } else {
+    // Fallback: foreground-only notification without service worker
+    new Notification(title, { body });
+  }
+}
+
+function webSchedule(
+  title: string,
+  body: string,
+  delayMs: number,
+): string {
+  const id = setTimeout(() => webShowNotification(title, body), delayMs);
+  return String(id);
+}
+
+function msUntilNext(hour: number, minute: number): number {
+  const now = new Date();
+  const next = new Date();
+  next.setHours(hour, minute, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  return next.getTime() - now.getTime();
+}
+
+// --- Public API ---
+
 export async function requestNotificationPermission(): Promise<boolean> {
-  if (!isNative) return false;
+  if (!isNative) {
+    if (!('Notification' in window)) return false;
+    const status = await Notification.requestPermission();
+    return status === 'granted';
+  }
+
   const { status: existingStatus } = await ExpoNotifications.getPermissionsAsync();
   let finalStatus = existingStatus;
-
   if (existingStatus !== 'granted') {
     const { status } = await ExpoNotifications.requestPermissionsAsync();
     finalStatus = status;
   }
-
   return finalStatus === 'granted';
 }
 
 export async function scheduleOverBudgetAlert(
   category: Category,
   overBy: number,
-  currency: string
+  currency: string,
 ): Promise<string> {
-  if (!isNative) return '';
   const { title, body } = buildOverBudgetMessage(category, overBy, currency);
+
+  if (!isNative) {
+    await webShowNotification(title, body);
+    return '';
+  }
 
   return ExpoNotifications.scheduleNotificationAsync({
     content: {
@@ -58,9 +97,12 @@ export async function scheduleOverBudgetAlert(
 }
 
 export async function scheduleDailyReminder(time: string): Promise<string> {
-  if (!isNative) return '';
   const [hour, minute] = time.split(':').map(Number);
   const { title, body } = buildDailyReminderMessage();
+
+  if (!isNative) {
+    return webSchedule(title, body, msUntilNext(hour, minute));
+  }
 
   return ExpoNotifications.scheduleNotificationAsync({
     content: { title, body },
@@ -73,19 +115,31 @@ export async function scheduleDailyReminder(time: string): Promise<string> {
 }
 
 export async function cancelDailyReminder(notificationId: string): Promise<void> {
-  if (!isNative || !notificationId) return;
-  await ExpoNotifications.cancelScheduledNotificationAsync(notificationId);
+  if (!isNative) {
+    if (notificationId) clearTimeout(Number(notificationId));
+    return;
+  }
+  if (notificationId) {
+    await ExpoNotifications.cancelScheduledNotificationAsync(notificationId);
+  }
 }
 
 export async function scheduleMonthEndSummary(
   month: string,
   summary: BudgetSummary,
-  currency: string
+  currency: string,
 ): Promise<string> {
-  if (!isNative) return '';
   const { title, body } = buildMonthEndSummaryMessage(summary, currency, month);
 
-  // Schedule for the 1st of next month at 9:00 AM
+  if (!isNative) {
+    // Fire at 9:00 AM on the 1st of next month
+    const [year, m] = month.split('-').map(Number);
+    const nextDate = new Date(year, m, 1, 9, 0, 0);
+    const delayMs = nextDate.getTime() - Date.now();
+    if (delayMs > 0) return webSchedule(title, body, delayMs);
+    return '';
+  }
+
   const [year, m] = month.split('-').map(Number);
   const nextDate = new Date(year, m, 1, 9, 0, 0);
 
@@ -100,10 +154,19 @@ export async function scheduleMonthEndSummary(
 
 export async function scheduleWeeklyDigest(
   summary: BudgetSummary,
-  currency: string
+  currency: string,
 ): Promise<string> {
-  if (!isNative) return '';
   const { title, body } = buildWeeklyDigestMessage(summary, currency);
+
+  if (!isNative) {
+    // Fire next Sunday at 10:00 AM
+    const now = new Date();
+    const next = new Date();
+    const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
+    next.setDate(now.getDate() + daysUntilSunday);
+    next.setHours(10, 0, 0, 0);
+    return webSchedule(title, body, next.getTime() - now.getTime());
+  }
 
   return ExpoNotifications.scheduleNotificationAsync({
     content: { title, body },

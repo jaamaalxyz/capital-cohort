@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Platform } from 'react-native';
 import { I18nextProvider } from 'react-i18next';
 import { BudgetProvider, useBudget } from '../context/BudgetContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
@@ -85,6 +85,14 @@ export default function RootLayout() {
     initI18n().then(() => {
       setIsI18nInitialized(true);
     });
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // Service worker registration failed — notifications won't work in background
+      });
+    }
   }, []);
 
   if (!isI18nInitialized) {
