@@ -59,6 +59,7 @@ import {
   cancelDailyReminder,
 } from '../../utils/notifications';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
+import { TimePicker } from '../../components/TimePicker';
 
 function SettingsContent() {
   const { t } = useTranslation();
@@ -307,6 +308,11 @@ function SettingsContent() {
       ...state.notificationPrefs,
       [key]: value,
     });
+
+    // When the reminder time changes while the reminder is active, reschedule immediately
+    if (key === 'dailyReminderTime' && state.notificationPrefs.dailyReminder) {
+      scheduleDailyReminder(value as string);
+    }
   };
 
   const handleDailyReminderToggle = async (value: boolean) => {
@@ -775,14 +781,9 @@ function SettingsContent() {
               {state.notificationPrefs.dailyReminder && (
                 <View style={styles.timeInputRow}>
                   <Text style={styles.label}>Reminder Time</Text>
-                  <TextInput
-                    style={[styles.timeInput, { color: colors.textPrimary, borderColor: colors.border }]}
-                    testID="reminder-time-input"
+                  <TimePicker
                     value={state.notificationPrefs.dailyReminderTime}
-                    onChangeText={(v) => handleNotificationPrefChange('dailyReminderTime', v)}
-                    placeholder="HH:MM"
-                    placeholderTextColor={colors.textSecondary}
-                    maxLength={5}
+                    onChange={(time) => handleNotificationPrefChange('dailyReminderTime', time)}
                   />
                 </View>
               )}

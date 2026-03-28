@@ -29,11 +29,19 @@ if (isNative) {
 
 async function webShowNotification(title: string, body: string): Promise<void> {
   if (Notification.permission !== 'granted') return;
-  const reg = await navigator.serviceWorker?.ready.catch(() => null);
+
+  // navigator.serviceWorker.ready never rejects — only resolves when a SW is
+  // active and controlling the page. On first visit it hangs indefinitely, so
+  // we race it against a 500 ms timeout and fall back to new Notification().
+  const swTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 500));
+  const reg = await Promise.race([
+    navigator.serviceWorker?.ready.catch(() => null) ?? Promise.resolve(null),
+    swTimeout,
+  ]);
+
   if (reg) {
     reg.showNotification(title, { body, icon: '/assets/icon.png' });
   } else {
-    // Fallback: foreground-only notification without service worker
     new Notification(title, { body });
   }
 }

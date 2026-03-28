@@ -3,9 +3,11 @@ import React, {
   useContext,
   useReducer,
   useEffect,
+  useRef,
   useMemo,
   ReactNode,
 } from 'react';
+import { Platform } from 'react-native';
 import {
   BudgetState,
   BudgetAction,
@@ -41,7 +43,7 @@ import { materializeAllForMonth } from '../utils/recurringExpenses';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
 import { DEFAULT_BUDGET_RULE } from '../constants/budgetPresets';
 import { DEFAULT_NOTIFICATION_PREFS } from '../types';
-import { scheduleOverBudgetAlert } from '../utils/notifications';
+import { scheduleOverBudgetAlert, scheduleDailyReminder, cancelDailyReminder } from '../utils/notifications';
 import {
   calculateBudgetSummary,
   getExpensesForMonth,
@@ -143,6 +145,8 @@ const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(budgetReducer, initialState);
+  // Tracks the active web setTimeout ID so we can cancel before rescheduling
+  const webReminderIdRef = useRef<string>('');
 
   // Load data on mount
   useEffect(() => {
@@ -235,6 +239,22 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       saveNotificationPrefs(state.notificationPrefs);
     }
   }, [state.notificationPrefs, state.isLoading]);
+
+  // Web: reschedule daily reminder whenever the page loads or prefs change.
+  // setTimeout is wiped on every HMR reload in dev, so we must re-create it
+  // each time. Cancel the previous ID first to avoid stacking duplicate timers.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || state.isLoading) return;
+    if (webReminderIdRef.current) {
+      cancelDailyReminder(webReminderIdRef.current);
+      webReminderIdRef.current = '';
+    }
+    if (state.notificationPrefs.dailyReminder) {
+      scheduleDailyReminder(state.notificationPrefs.dailyReminderTime).then((id) => {
+        webReminderIdRef.current = id;
+      });
+    }
+  }, [state.isLoading, state.notificationPrefs.dailyReminder, state.notificationPrefs.dailyReminderTime]);
 
   // Materialize recurring templates after load
   useEffect(() => {

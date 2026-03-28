@@ -27,10 +27,7 @@
         "backgroundColor": "#4CAF50"
       },
       "package": "com.jaamaalxyz.capitalcohort",
-      "permissions": [
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
-      ]
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -40,12 +37,19 @@
       "expo-router",
       "expo-localization",
       [
+        "expo-dev-client",
+        {
+          "launchMode": "most-recent"
+        }
+      ],
+      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Allow Capital Cohort to use your location."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "@react-native-community/datetimepicker"
     ],
     "owner": "jaamaalxyz",
     "extra": {
