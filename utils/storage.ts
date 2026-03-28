@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/theme';
-import { Expense, RecurringTemplate, ThemeMode, BudgetRule } from '../types';
+import { Expense, RecurringTemplate, ThemeMode, BudgetRule, NotificationPreferences, DEFAULT_NOTIFICATION_PREFS, LocationPreference } from '../types';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
 import { DEFAULT_BUDGET_RULE } from '../constants/budgetPresets';
 import { logError } from './errorLogger';
@@ -71,7 +71,7 @@ export async function loadCurrency(): Promise<string> {
   }
 }
 
-export async function saveLocation(location: any): Promise<void> {
+export async function saveLocation(location: LocationPreference | null | undefined): Promise<void> {
   try {
     if (location === undefined || location === null) {
       await AsyncStorage.removeItem(STORAGE_KEYS.LOCATION);
@@ -86,10 +86,19 @@ export async function saveLocation(location: any): Promise<void> {
   }
 }
 
-export async function loadLocation(): Promise<any> {
+export async function loadLocation(): Promise<LocationPreference | undefined> {
   try {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.LOCATION);
-    return value ? JSON.parse(value) : undefined;
+    if (!value) return undefined;
+    const parsed = JSON.parse(value);
+    
+    // Basic validation: must be an object
+    if (typeof parsed !== 'object' || parsed === null) {
+      logError(new Error('Location storage corrupted'), undefined, 'storage.loadLocation');
+      return undefined;
+    }
+    
+    return parsed;
   } catch (error) {
     logError(error as Error, undefined, 'storage.loadLocation');
     return undefined;
@@ -195,6 +204,42 @@ export async function loadBudgetRule(): Promise<BudgetRule> {
   }
 }
 
+export async function saveNotificationPrefs(
+  prefs: NotificationPreferences,
+): Promise<void> {
+  try {
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.NOTIFICATION_PREFS,
+      JSON.stringify(prefs),
+    );
+  } catch (error) {
+    logError(error as Error, undefined, 'storage.saveNotificationPrefs');
+  }
+}
+
+export async function loadNotificationPrefs(): Promise<NotificationPreferences> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_PREFS);
+    if (!value) return DEFAULT_NOTIFICATION_PREFS;
+    const parsed = JSON.parse(value);
+
+    // Minimal validation
+    if (typeof parsed?.overBudgetAlerts !== 'boolean') {
+      logError(
+        new Error('Notification preferences storage corrupted'),
+        undefined,
+        'storage.loadNotificationPrefs',
+      );
+      return DEFAULT_NOTIFICATION_PREFS;
+    }
+
+    return parsed as NotificationPreferences;
+  } catch (error) {
+    logError(error as Error, undefined, 'storage.loadNotificationPrefs');
+    return DEFAULT_NOTIFICATION_PREFS;
+  }
+}
+
 export async function clearAllData(): Promise<void> {
   try {
     await AsyncStorage.multiRemove([
@@ -208,6 +253,7 @@ export async function clearAllData(): Promise<void> {
       STORAGE_KEYS.THEME,
       STORAGE_KEYS.RECURRING_TEMPLATES,
       STORAGE_KEYS.BUDGET_RULE,
+      STORAGE_KEYS.NOTIFICATION_PREFS,
     ]);
   } catch (error) {
     logError(error as Error, undefined, 'storage.clearAllData');

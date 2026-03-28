@@ -1,16 +1,18 @@
 # CLAUDE.md
 
-This file provides context for Claude Code (AI assistant) when working on this project.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
 **Capital Cohort** - Personalize money management for all.
 
-A personalize, offline-first React Native mobile app for monthly budgeting, investment and all about your financial tracking following the **50/30/20 rule** of core financial literacy for all guide:
+An offline-first React Native mobile app for monthly budgeting following the **50/30/20 rule**:
 
 - 50% for Needs (essentials)
 - 30% for Wants (non-essentials)
 - 20% for Savings
+
+Budget rules are customizable — three presets (50/30/20, 70/20/10, 60/20/20) or fully custom, must sum to 100%.
 
 ## Tech Stack
 
@@ -19,94 +21,86 @@ A personalize, offline-first React Native mobile app for monthly budgeting, inve
 - **AsyncStorage** for local data persistence
 - **React Context + useReducer** for state management
 - **TypeScript** for type safety
+- **i18next** for localization (English + Bengali)
 
 ## Key Files & Architecture
 
 ### Entry Points
 
-- `app/_layout.tsx` - Root layout, wraps app with BudgetProvider and SafeAreaProvider
-- `app/(tabs)/_layout.tsx` - Tab navigator configuration
+- `app/_layout.tsx` - Root layout; initializes i18n, wraps app with `I18nextProvider`, `ThemeProvider`, `BudgetProvider`, `SafeAreaProvider`; handles onboarding redirect; wraps `AppContent` in `ErrorBoundary`
+- `app/(tabs)/_layout.tsx` - Tab navigator (Home, Expenses, Reports, Settings)
 
 ### State Management
 
 - `context/BudgetContext.tsx` - Global state with reducer pattern
-  - Manages: `monthlyIncome`, `expenses[]`, `currentMonth`, `isLoading`
-  - Provides: `setIncome()`, `addExpense()`, `deleteExpense()`, `setMonth()`, `resetAll()`
-  - Auto-persists to AsyncStorage on state changes
+  - Manages: income, expenses, currentMonth, currency, location, recurringTemplates, budgetRule, notificationPrefs, onboardingCompleted
+  - Auto-persists every slice to AsyncStorage via individual useEffects (one per state key)
+  - Materializes recurring templates when month changes or on first load
+  - Triggers `scheduleOverBudgetAlert` when a category goes over budget (throttled per category/month via `lastOverBudgetAt`)
+- `context/ThemeContext.tsx` - Light/dark/auto theme, persisted to AsyncStorage
 
 ### Data Types
 
 - `types/index.ts` - All TypeScript interfaces
-  - `Expense`: id, amount (cents), description, category, date, createdAt
-  - `Category`: 'needs' | 'wants' | 'savings'
-  - `BudgetSummary`: calculated budget breakdown
-
-### Screens
-
-- `app/(tabs)/index.tsx` - Dashboard with budget overview
-- `app/(tabs)/expenses.tsx` - Expense list with filtering
-- `app/(tabs)/settings.tsx` - Income configuration
-- `app/add-expense.tsx` - Modal for adding expenses
-
-### Components
-
-- `components/BudgetCard.tsx` - Category budget display with progress bar
-- `components/ExpenseItem.tsx` - Single expense row with delete
-- `components/AmountInput.tsx` - Currency input field
-- `components/CategoryPicker.tsx` - Category selection cards
-- `components/ProgressBar.tsx` - Visual budget consumption
+  - `Expense`: id, amount (cents), description, category, date, createdAt, recurringTemplateId?
+  - `Category`: `'needs' | 'wants' | 'savings'`
+  - `BudgetRule`: `{ needs: number, wants: number, savings: number }` — percentages summing to 100
+  - `RecurringTemplate`: recurring expense definition with dayOfMonth, isActive, lastMaterializedMonth
+  - `NotificationPreferences`: over-budget alerts, daily reminder, weekly digest, month-end summary, lastOverBudgetAt throttle map
+  - `LocationPreference`: latitude, longitude, address, city, country
 
 ### Utilities
 
-- `utils/storage.ts` - AsyncStorage CRUD operations
-- `utils/calculations.ts` - Budget math (category totals, summaries)
-- `utils/formatters.ts` - Currency/date formatting, ID generation
-- `utils/validation.ts` - Input validation for expenses/income
+- `utils/storage.ts` - AsyncStorage CRUD; all `loadX()` return safe defaults on corruption and call `logError`
+- `utils/calculations.ts` - Budget math; `calculateCategoryBudget` accepts a `BudgetRule` parameter
+- `utils/notifications.ts` - Expo Notifications wrapper (over-budget alerts, daily reminder, weekly digest, month-end summary)
+- `utils/notificationMessages.ts` - Pure message builders for all notification types
+- `utils/recurringExpenses.ts` - Materialize recurring templates into expenses; handles month-end day capping (Feb 28/29 etc.)
+- `utils/budgetRules.ts` - Validate/detect/adjust budget rules; `adjustThirdCategory` keeps total at 100%
+- `utils/filterExpenses.ts` - Client-side filter/search/sort pipeline for Expenses screen
+- `utils/reportCalculations.ts` - Monthly snapshots, average daily spend, top category
+- `utils/exportData.ts` / `utils/importData.ts` - CSV and JSON backup/restore
+- `utils/errorLogger.ts` - Safe error logging (self-protected against recursive crashes)
+- `hooks/useExpenseFilters.ts` - Filter state hook for the Expenses screen
 
 ### Constants
 
-- `constants/theme.ts` - Colors, spacing, fonts, category config
-
-## Common Tasks
-
-### Adding a New Screen
-
-1. Create file in `app/` directory (Expo Router auto-registers)
-2. For tabs: add to `app/(tabs)/` and update `_layout.tsx`
-3. For modals: add to `app/` root and configure in `app/_layout.tsx`
-
-### Adding a New Component
-
-1. Create in `components/` directory
-2. Import theme constants from `constants/theme.ts`
-3. Use TypeScript interfaces for props
-
-### Modifying State
-
-1. Add action type to `BudgetAction` in `types/index.ts`
-2. Handle in reducer in `context/BudgetContext.tsx`
-3. Expose via context value if needed by components
-
-### Adding Storage
-
-1. Add key to `STORAGE_KEYS` in `constants/theme.ts`
-2. Add save/load functions in `utils/storage.ts`
-3. Wire up persistence in `BudgetContext.tsx` useEffect
+- `constants/theme.ts` - Colors (light/dark), spacing, fonts, category config, `STORAGE_KEYS`
+- `constants/budgetPresets.ts` - `BUDGET_PRESETS`, `DEFAULT_BUDGET_RULE`
+- `constants/currencies.ts` - 150+ currencies; `getCurrencyByCode(code)`
 
 ## Code Conventions
 
 - **Amounts**: Stored in cents (integer) to avoid floating-point issues
-- **Dates**: ISO strings (YYYY-MM-DD for dates, full ISO for timestamps)
-- **Month format**: YYYY-MM string (e.g., "2024-01")
-- **IDs**: UUID v4 format generated client-side
-- **Styling**: React Native StyleSheet, no external UI library
-- **State**: React Context + useReducer, no Redux/MobX
+- **Dates**: ISO strings (`YYYY-MM-DD` for dates, full ISO for timestamps)
+- **Month format**: `YYYY-MM` string (e.g., `"2024-01"`)
+- **IDs**: UUID v4 format generated client-side via `generateId()`
+- **Styling**: React Native `StyleSheet`, no external UI library; theme colors via `useTheme()`
+- **State**: React Context + useReducer only — no Redux/MobX
+
+## Modifying State
+
+1. Add action type to `BudgetAction` in `types/index.ts`
+2. Handle in reducer in `context/BudgetContext.tsx`
+3. Add storage key to `STORAGE_KEYS` in `constants/theme.ts` if persistence needed
+4. Add `saveX`/`loadX` in `utils/storage.ts` with try/catch + `logError` + safe default
+5. Wire up a persistence `useEffect` in `BudgetContext.tsx`
+6. Expose dispatcher via context value
 
 ## Testing Commands
 
 ```bash
-# Type check
+# Type check (no output = success)
 npx tsc --noEmit
+
+# Run all tests (non-interactive)
+npm test -- --watchAll=false
+
+# Run a single test file
+npm test -- --watchAll=false __tests__/utils/storage.test.ts
+
+# Run with coverage
+npm run test:coverage
 
 # Start development server
 npm start
@@ -117,23 +111,28 @@ npm run android
 npm run web
 ```
 
+## Testing Conventions
+
+- Coverage threshold: **80%** (branches, functions, lines, statements)
+- Test files mirror source structure under `__tests__/`: `utils/`, `components/`, `screens/`, `hooks/`, `integration/`, `context/`
+- Integration tests render a full `BudgetProvider` tree — see `__tests__/integration/` for patterns
+- All Expo module mocks live in `jest.setup.ts`; add new mocks there when introducing new Expo SDK usage
+
+### expo-notifications mock gotcha
+
+`jest.setup.ts` must mock **both** `AndroidImportance` and `AndroidNotificationPriority` (they are separate enums).
+`SchedulableTriggerInputTypes` must include `DATE` — omitting it causes `undefined` errors in tests.
+`DailyTriggerInput` and `WeeklyTriggerInput` have **no `repeats` field**; `DateTriggerInput` requires an explicit `type` field.
+
 ## Important Notes
 
-- App is **offline-first** - all data local, no backend
-- **No authentication** - zero friction onboarding
+- App is **offline-first** — all data local, no backend
+- **No authentication** — zero friction onboarding
 - Amounts displayed as currency but stored as **cents** (integer)
-- Month navigation limited to current month (can't go to future)
 - Expenses belong to the month of their `date` field, not `createdAt`
+- `ExpenseItem` shows a `↻` badge when `expense.recurringTemplateId` is set
 
-## File Structure Summary
+## Environment Quirks
 
-```
-app/                 # Screens (Expo Router)
-components/          # Reusable UI components
-context/             # React Context providers
-types/               # TypeScript definitions
-utils/               # Helper functions
-constants/           # Theme, config
-docs/                # Planning documents
-assets/              # Images, icons
-```
+- `head` is not the standard Unix utility on this machine — piping `| head -n N` will fail. Use `tail` or avoid the pipe.
+- `npx tsc --noEmit` prints **nothing** on success (zero output = clean).

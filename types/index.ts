@@ -85,6 +85,7 @@ export interface BudgetState {
   onboardingCompleted: boolean;
   recurringTemplates: RecurringTemplate[];
   budgetRule: BudgetRule;
+  notificationPrefs: NotificationPreferences;
 }
 
 export type BudgetAction =
@@ -102,7 +103,8 @@ export type BudgetAction =
   | { type: 'UPDATE_RECURRING_TEMPLATE'; payload: RecurringTemplate }
   | { type: 'DELETE_RECURRING_TEMPLATE'; payload: string }
   | { type: 'MATERIALIZE_RECURRING'; payload: { expenses: Expense[]; templates: RecurringTemplate[] } }
-  | { type: 'SET_BUDGET_RULE'; payload: BudgetRule };
+  | { type: 'SET_BUDGET_RULE'; payload: BudgetRule }
+  | { type: 'SET_NOTIFICATION_PREFS'; payload: NotificationPreferences };
 
 export interface ValidationResult {
   isValid: boolean;
@@ -181,3 +183,21 @@ export interface BudgetPreset {
   label: string;
   rule: BudgetRule;
 }
+
+export interface NotificationPreferences {
+  overBudgetAlerts: boolean; // default: true
+  dailyReminder: boolean; // default: false
+  dailyReminderTime: string; // HH:MM 24h, default: '20:00'
+  weeklyDigest: boolean; // default: false
+  monthEndSummary: boolean; // default: true
+  lastOverBudgetAt: Record<Category, string>; // YYYY-MM to throttle alerts
+}
+
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
+  overBudgetAlerts: true,
+  dailyReminder: false,
+  dailyReminderTime: '20:00',
+  weeklyDigest: false,
+  monthEndSummary: true,
+  lastOverBudgetAt: { needs: '', wants: '', savings: '' },
+};

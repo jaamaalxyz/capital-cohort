@@ -14,6 +14,8 @@ import {
   LocationPreference,
   RecurringTemplate,
   BudgetRule,
+  NotificationPreferences,
+  Category,
 } from '../types';
 import { getCurrentMonth } from '../utils/formatters';
 import {
@@ -32,10 +34,14 @@ import {
   loadRecurringTemplates,
   saveBudgetRule,
   loadBudgetRule,
+  saveNotificationPrefs,
+  loadNotificationPrefs,
 } from '../utils/storage';
 import { materializeAllForMonth } from '../utils/recurringExpenses';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
 import { DEFAULT_BUDGET_RULE } from '../constants/budgetPresets';
+import { DEFAULT_NOTIFICATION_PREFS } from '../types';
+import { scheduleOverBudgetAlert } from '../utils/notifications';
 import {
   calculateBudgetSummary,
   getExpensesForMonth,
@@ -51,6 +57,7 @@ const initialState: BudgetState = {
   onboardingCompleted: false,
   recurringTemplates: [],
   budgetRule: DEFAULT_BUDGET_RULE,
+  notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
 };
 
 function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
@@ -98,6 +105,8 @@ function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
       };
     case 'SET_BUDGET_RULE':
       return { ...state, budgetRule: action.payload };
+    case 'SET_NOTIFICATION_PREFS':
+      return { ...state, notificationPrefs: action.payload };
     case 'RESET_ALL':
       return {
         ...initialState,
@@ -127,6 +136,7 @@ interface BudgetContextType {
   updateRecurringTemplate: (template: RecurringTemplate) => void;
   deleteRecurringTemplate: (id: string) => void;
   setBudgetRule: (rule: BudgetRule) => void;
+  setNotificationPrefs: (prefs: NotificationPreferences) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
@@ -138,7 +148,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function loadData() {
       try {
-        const [income, expenses, currency, location, onboardingCompleted, recurringTemplates, budgetRule] =
+        const [income, expenses, currency, location, onboardingCompleted, recurringTemplates, budgetRule, notificationPrefs] =
           await Promise.all([
             loadIncome(),
             loadExpenses(),
@@ -147,6 +157,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
             loadOnboardingCompleted(),
             loadRecurringTemplates(),
             loadBudgetRule(),
+            loadNotificationPrefs(),
           ]);
         dispatch({
           type: 'LOAD_DATA',
@@ -158,6 +169,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
             onboardingCompleted,
             recurringTemplates,
             budgetRule,
+            notificationPrefs,
           },
         });
       } catch (error) {
@@ -217,12 +229,19 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }
   }, [state.budgetRule, state.isLoading]);
 
+  // Save notification prefs
+  useEffect(() => {
+    if (!state.isLoading) {
+      saveNotificationPrefs(state.notificationPrefs);
+    }
+  }, [state.notificationPrefs, state.isLoading]);
+
   // Materialize recurring templates after load
   useEffect(() => {
     if (!state.isLoading) {
       const { newExpenses, updatedTemplates } = materializeAllForMonth(
         state.recurringTemplates,
-        state.currentMonth
+        state.currentMonth,
       );
       if (newExpenses.length > 0) {
         dispatch({
@@ -242,6 +261,35 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     () => calculateBudgetSummary(state.monthlyIncome, currentMonthExpenses, state.budgetRule),
     [state.monthlyIncome, currentMonthExpenses, state.budgetRule],
   );
+
+  // Over-budget alert trigger
+  useEffect(() => {
+    if (!state.isLoading && state.notificationPrefs.overBudgetAlerts) {
+      const categories: Category[] = ['needs', 'wants', 'savings'];
+      const updatedPrefs = { ...state.notificationPrefs };
+      let hasChanges = false;
+
+      categories.forEach((cat) => {
+        const catSummary = summary[cat];
+        if (catSummary.isOverBudget) {
+          // Check if we already alerted for this category this month
+          if (state.notificationPrefs.lastOverBudgetAt[cat] !== state.currentMonth) {
+            scheduleOverBudgetAlert(
+              cat,
+              Math.abs(catSummary.remaining),
+              state.currency
+            );
+            updatedPrefs.lastOverBudgetAt[cat] = state.currentMonth;
+            hasChanges = true;
+          }
+        }
+      });
+
+      if (hasChanges) {
+        dispatch({ type: 'SET_NOTIFICATION_PREFS', payload: updatedPrefs });
+      }
+    }
+  }, [state.expenses, state.isLoading, state.notificationPrefs.overBudgetAlerts, state.currentMonth, summary, state.currency]);
 
   const setIncome = (income: number) => {
     dispatch({ type: 'SET_INCOME', payload: income });
@@ -296,6 +344,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_BUDGET_RULE', payload: rule });
   };
 
+  const setNotificationPrefs = (prefs: NotificationPreferences) => {
+    dispatch({ type: 'SET_NOTIFICATION_PREFS', payload: prefs });
+  };
+
   return (
     <BudgetContext.Provider
       value={{
@@ -315,6 +367,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         updateRecurringTemplate,
         deleteRecurringTemplate,
         setBudgetRule,
+        setNotificationPrefs,
       }}
     >
       {children}

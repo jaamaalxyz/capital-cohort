@@ -35,8 +35,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     await saveTheme(mode);
   };
 
-  const effectiveTheme =
-    themeMode === 'auto' ? (systemColorScheme ?? 'light') : themeMode;
+  const systemTheme: 'light' | 'dark' =
+    systemColorScheme === 'dark' ? 'dark' : 'light';
+
+  const effectiveTheme = themeMode === 'auto' ? systemTheme : themeMode;
 
   const isDark = effectiveTheme === 'dark';
   const colors = isDark ? DARK_COLORS : LIGHT_COLORS;

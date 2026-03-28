@@ -7,7 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "scheme": "capital-cohort",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -27,9 +26,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#4CAF50"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.jaamaalxyz.capitalcohort",
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -43,7 +44,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow Capital Cohort to use your location."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "owner": "jaamaalxyz",
     "extra": {
