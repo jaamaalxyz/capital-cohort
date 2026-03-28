@@ -25,6 +25,8 @@ export default {
     setupIncome: 'আপনার আয় সেট করুন →',
     totalSpent: 'মোট খরচ',
     remaining: 'অবশিষ্ট',
+    extraIncome: 'অতিরিক্ত আয়',
+    debts: 'বকেয়া ঋণ',
   },
 
   // Expenses Screen
@@ -140,6 +142,7 @@ export default {
   // Budget Card
   budgetCard: {
     remaining: 'অবশিষ্ট:',
+    incomeLimited: 'মোট আয়ের দ্বারা সীমিত',
   },
 
   // Categories
@@ -184,6 +187,27 @@ export default {
   // Error Messages
   errors: {
     somethingWentWrong: 'কিছু ভুল হয়েছে',
-    unexpectedError: 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। আপনার ডেটা নিরাপদ আছে।',
+    unexpectedError: 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। আপনার তথ্য নিরাপদ।',
+  },
+
+  // Overflow handling
+  overflow: {
+    categoryTitle: 'বিভাগের উদ্বৃত্ত',
+    incomeTitle: 'মোট আয়ের উদ্বৃত্ত',
+    overspentBy: 'আপনি {{amount}} বেশি খরচ করেছেন',
+    addExtraIncome: 'অতিরিক্ত আয় যোগ করুন',
+    addExtraIncomeDesc: 'এটি এককালীন উপার্জনের মাধ্যমে কিস্তির আয় পূরণ করুন',
+    addToDebt: 'ঋণ হিসাবে যোগ করুন',
+    addToDebtDesc: 'এটিকে আপনার ঋণের টাকা হিসাবে চিহ্নিত করুন',
+  },
+
+  // Debts Screen
+  debts: {
+    title: 'ঋণ',
+    noDebts: 'এখনও কোনো ঋণ রেকর্ড করা হয়নি',
+    markSettled: 'পরিশোধিত হিসেবে চিহ্নিত করুন',
+    settled: 'পরিশোধিত',
+    outstanding: 'বকেয়া',
+    totalSettled: 'মোট পরিশোধিত',
   },
 } as const;

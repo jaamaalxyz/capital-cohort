@@ -37,5 +37,20 @@ export function parseImportJSON(raw: string): ExportPayload {
   if (!('version' in p)) throw new ImportError('Missing version field');
   if (!Array.isArray(p.expenses)) throw new ImportError('expenses must be an array');
   p.expenses = p.expenses.map((e, i) => validateExpense(e, i));
+
+  // Handle version 2+ fields
+  if (p.version && (p.version as number) >= 2) {
+    if (!('extraIncomes' in p) || !Array.isArray(p.extraIncomes)) {
+      throw new ImportError('extraIncomes must be an array');
+    }
+    if (!('debtEntries' in p) || !Array.isArray(p.debtEntries)) {
+      throw new ImportError('debtEntries must be an array');
+    }
+  } else {
+    // Backward compatibility for v1
+    p.extraIncomes = [];
+    p.debtEntries = [];
+  }
+
   return p as unknown as ExportPayload;
 }

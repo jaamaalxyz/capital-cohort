@@ -59,6 +59,13 @@ export function BudgetCard({
             ({percentageDisplay}%)
           </Text>
         </View>
+        {budget.isIncomeLimited && (
+          <View style={styles.incomeLimitedRow}>
+            <Text style={styles.incomeLimitedText}>
+              ⚠️ {t('budgetCard.incomeLimited')}
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.footer}>
@@ -67,9 +74,10 @@ export function BudgetCard({
           style={[
             styles.remainingAmount,
             budget.isOverBudget && styles.overBudget,
+            budget.isIncomeLimited && styles.incomeLimitedAmount,
           ]}
         >
-          {formatCurrency(budget.remaining, currencySymbol)}
+          {formatCurrency(budget.effectiveRemaining, currencySymbol)}
           {budget.remaining >= 0 && !budget.isOverBudget && ' ✓'}
         </Text>
       </View>
@@ -141,5 +149,18 @@ const createStyles = (colors: any) =>
     },
     overBudget: {
       color: colors.overBudget,
+    },
+    incomeLimitedRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 2,
+    },
+    incomeLimitedText: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.wants,
+      fontWeight: '500',
+    },
+    incomeLimitedAmount: {
+      color: colors.wants,
     },
   });

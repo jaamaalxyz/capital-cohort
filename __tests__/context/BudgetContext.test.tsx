@@ -42,6 +42,9 @@ const ContextConsumer: React.FC<ConsumerProps> = ({ onReady }) => {
       <Text testID="location">{JSON.stringify(ctx.state.location)}</Text>
       <Text testID="template-count">{ctx.state.recurringTemplates.length}</Text>
       <Text testID="budget-rule">{JSON.stringify(ctx.state.budgetRule)}</Text>
+      <Text testID="extra-income-count">{ctx.state.extraIncomes.length}</Text>
+      <Text testID="debt-count">{ctx.state.debtEntries.length}</Text>
+      <Text testID="debt-list">{JSON.stringify(ctx.state.debtEntries)}</Text>
     </>
   );
 };
@@ -268,5 +271,68 @@ describe('useBudget wrapper', () => {
     };
     jest.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<BadConsumer />)).toThrow();
+  });
+});
+
+describe('BudgetContext — Extra Income', () => {
+  const makeExtra = (id = 'ei1') => ({
+    id,
+    amount: 50000,
+    description: 'Bonus',
+    month: getCurrentMonth(),
+    date: `${getCurrentMonth()}-10`,
+    createdAt: new Date().toISOString(),
+  });
+
+  it('adds and deletes extra income', async () => {
+    let ctx: ReturnType<typeof useBudget> | null = null;
+    const { getByTestId } = renderWithProvider({ onReady: (c) => { ctx = c; } });
+
+    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+
+    act(() => {
+      ctx!.addExtraIncome(makeExtra('ei-1'));
+    });
+    await waitFor(() => expect(getByTestId('extra-income-count').props.children).toBe(1));
+
+    act(() => {
+      ctx!.deleteExtraIncome('ei-1');
+    });
+    await waitFor(() => expect(getByTestId('extra-income-count').props.children).toBe(0));
+  });
+});
+
+describe('BudgetContext — Debt Entries', () => {
+  const makeDebt = (id = 'de1') => ({
+    id,
+    amount: 20000,
+    creditor: 'Friend',
+    note: 'Dinner',
+    month: getCurrentMonth(),
+    date: `${getCurrentMonth()}-11`,
+    createdAt: new Date().toISOString(),
+    isSettled: false,
+  });
+
+  it('adds and settles debt entries', async () => {
+    let ctx: ReturnType<typeof useBudget> | null = null;
+    const { getByTestId } = renderWithProvider({ onReady: (c) => { ctx = c; } });
+
+    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+
+    act(() => {
+      ctx!.addDebtEntry(makeDebt('de-1'));
+    });
+    await waitFor(() => expect(getByTestId('debt-count').props.children).toBe(1));
+
+    act(() => {
+      ctx!.settleDebt('de-1');
+    });
+
+    await waitFor(() => {
+      const debtList = JSON.parse(getByTestId('debt-list').props.children);
+      const debt = debtList.find((d: any) => d.id === 'de-1');
+      expect(debt?.isSettled).toBe(true);
+    });
   });
 });

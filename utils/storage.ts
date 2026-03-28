@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/theme';
-import { Expense, RecurringTemplate, ThemeMode, BudgetRule, NotificationPreferences, DEFAULT_NOTIFICATION_PREFS, LocationPreference } from '../types';
+import { Expense, RecurringTemplate, ThemeMode, BudgetRule, NotificationPreferences, DEFAULT_NOTIFICATION_PREFS, LocationPreference, ExtraIncome, DebtEntry } from '../types';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
 import { DEFAULT_BUDGET_RULE } from '../constants/budgetPresets';
 import { logError } from './errorLogger';
@@ -240,6 +240,54 @@ export async function loadNotificationPrefs(): Promise<NotificationPreferences> 
   }
 }
 
+export async function saveExtraIncomes(incomes: ExtraIncome[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.EXTRA_INCOMES, JSON.stringify(incomes));
+  } catch (error) {
+    logError(error as Error, undefined, 'storage.saveExtraIncomes');
+  }
+}
+
+export async function loadExtraIncomes(): Promise<ExtraIncome[]> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.EXTRA_INCOMES);
+    if (!value) return [];
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      logError(new Error('Extra incomes storage corrupted'), undefined, 'storage.loadExtraIncomes');
+      return [];
+    }
+    return parsed;
+  } catch (error) {
+    logError(error as Error, undefined, 'storage.loadExtraIncomes');
+    return [];
+  }
+}
+
+export async function saveDebtEntries(entries: DebtEntry[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.DEBT_ENTRIES, JSON.stringify(entries));
+  } catch (error) {
+    logError(error as Error, undefined, 'storage.saveDebtEntries');
+  }
+}
+
+export async function loadDebtEntries(): Promise<DebtEntry[]> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.DEBT_ENTRIES);
+    if (!value) return [];
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      logError(new Error('Debt entries storage corrupted'), undefined, 'storage.loadDebtEntries');
+      return [];
+    }
+    return parsed;
+  } catch (error) {
+    logError(error as Error, undefined, 'storage.loadDebtEntries');
+    return [];
+  }
+}
+
 export async function clearAllData(): Promise<void> {
   try {
     await AsyncStorage.multiRemove([
@@ -254,6 +302,8 @@ export async function clearAllData(): Promise<void> {
       STORAGE_KEYS.RECURRING_TEMPLATES,
       STORAGE_KEYS.BUDGET_RULE,
       STORAGE_KEYS.NOTIFICATION_PREFS,
+      STORAGE_KEYS.EXTRA_INCOMES,
+      STORAGE_KEYS.DEBT_ENTRIES,
     ]);
   } catch (error) {
     logError(error as Error, undefined, 'storage.clearAllData');

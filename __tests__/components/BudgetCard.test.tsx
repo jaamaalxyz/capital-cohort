@@ -10,6 +10,8 @@ const makeBudget = (overrides: Partial<CategoryBudget> = {}): CategoryBudget => 
   remaining: 60000,
   percentage: 40,
   isOverBudget: false,
+  effectiveRemaining: 60000,
+  isIncomeLimited: false,
   ...overrides,
 });
 
@@ -87,5 +89,29 @@ describe('BudgetCard — interaction', () => {
     const onPress = jest.fn();
     const { findByText } = renderCard({ onPress });
     expect(await findByText(/CATEGORIES.NEEDS/i)).toBeTruthy();
+  });
+});
+
+describe('BudgetCard — income limited state', () => {
+  it('displays income limited indicator and effective remaining when isIncomeLimited is true', async () => {
+    // Total income = 1000. Spent in other categories = 900.
+    // This category allocated = 500. Spent = 0.
+    // Theoretical remaining = 500. 
+    // BUT income remaining = 1000 - 900 = 100.
+    // So effectiveRemaining = 100. isIncomeLimited = true.
+    const budget = makeBudget({
+      allocated: 50000,
+      spent: 0,
+      remaining: 50000,
+      effectiveRemaining: 10000,
+      isIncomeLimited: true,
+    });
+    
+    const { findByText } = renderCard({ budget });
+    
+    // Should show "Income Limited" warning (key) - use regex because of emoji
+    expect(await findByText(/budgetCard\.incomeLimited/i)).toBeTruthy();
+    // Should show the effective remaining amount ($100.00)
+    expect(await findByText(/\$100\.00/)).toBeTruthy();
   });
 });

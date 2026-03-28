@@ -32,15 +32,15 @@ describe('Custom budget rule — dashboard integration', () => {
 
   it('calculateCategoryBudget uses rule percentages, not hardcoded 50/30/20', () => {
     const rule: BudgetRule = { needs: 70, wants: 20, savings: 10 };
-    const result = calculateCategoryBudget(100000, [], 'needs', rule);
+    const result = calculateCategoryBudget(100000, [], 'needs', rule, 0);
     expect(result.allocated).toBe(70000);
   });
 
   it('calculateCategoryBudget respects all three categories of a custom rule', () => {
     const rule: BudgetRule = { needs: 70, wants: 20, savings: 10 };
-    const needs = calculateCategoryBudget(100000, [], 'needs', rule);
-    const wants = calculateCategoryBudget(100000, [], 'wants', rule);
-    const savings = calculateCategoryBudget(100000, [], 'savings', rule);
+    const needs = calculateCategoryBudget(100000, [], 'needs', rule, 0);
+    const wants = calculateCategoryBudget(100000, [], 'wants', rule, 0);
+    const savings = calculateCategoryBudget(100000, [], 'savings', rule, 0);
     expect(needs.allocated).toBe(70000);
     expect(wants.allocated).toBe(20000);
     expect(savings.allocated).toBe(10000);

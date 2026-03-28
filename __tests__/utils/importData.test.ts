@@ -15,6 +15,27 @@ const validPayload = {
       createdAt: new Date().toISOString(),
     },
   ],
+  extraIncomes: [
+    {
+      id: 'ei1',
+      amount: 500,
+      description: 'Side gig',
+      month: '2024-01',
+      date: '2024-01-05',
+      createdAt: new Date().toISOString(),
+    },
+  ],
+  debtEntries: [
+    {
+      id: 'de1',
+      amount: 200,
+      creditor: 'Bob',
+      month: '2024-01',
+      date: '2024-01-06',
+      createdAt: new Date().toISOString(),
+      isSettled: false,
+    },
+  ],
 };
 
 describe('parseImportJSON', () => {
@@ -55,5 +76,24 @@ describe('parseImportJSON', () => {
     const badExpense = { ...validPayload.expenses[0], category: 'other' };
     const bad = { ...validPayload, expenses: [badExpense] };
     expect(() => parseImportJSON(JSON.stringify(bad))).toThrow(ImportError);
+  });
+
+  it('throws ImportError if extraIncomes is not an array (v2+)', () => {
+    const bad = { ...validPayload, version: 2, extraIncomes: 'not an array' };
+    expect(() => parseImportJSON(JSON.stringify(bad))).toThrow(ImportError);
+  });
+
+  it('throws ImportError if debtEntries is not an array (v2+)', () => {
+    const bad = { ...validPayload, version: 2, debtEntries: {} };
+    expect(() => parseImportJSON(JSON.stringify(bad))).toThrow(ImportError);
+  });
+
+  it('succeeds for v1 payload missing extraIncomes/debtEntries', () => {
+    const v1 = { ...validPayload, version: 1 };
+    delete (v1 as any).extraIncomes;
+    delete (v1 as any).debtEntries;
+    const result = parseImportJSON(JSON.stringify(v1));
+    expect(result.extraIncomes).toEqual([]);
+    expect(result.debtEntries).toEqual([]);
   });
 });

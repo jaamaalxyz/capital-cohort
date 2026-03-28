@@ -10,9 +10,9 @@ const makeSummary = (overrides = {}): BudgetSummary => ({
   income: 200000,
   totalSpent: 180000,
   totalRemaining: 20000,
-  needs: { allocated: 100000, spent: 120000, remaining: -20000, percentage: 120, isOverBudget: true },
-  wants: { allocated: 60000, spent: 40000, remaining: 20000, percentage: 67, isOverBudget: false },
-  savings: { allocated: 40000, spent: 20000, remaining: 20000, percentage: 50, isOverBudget: false },
+  needs: { allocated: 100000, spent: 120000, remaining: -20000, percentage: 120, isOverBudget: true, effectiveRemaining: 0, isIncomeLimited: false },
+  wants: { allocated: 60000, spent: 40000, remaining: 20000, percentage: 67, isOverBudget: false, effectiveRemaining: 20000, isIncomeLimited: false },
+  savings: { allocated: 40000, spent: 20000, remaining: 20000, percentage: 50, isOverBudget: false, effectiveRemaining: 20000, isIncomeLimited: false },
   ...overrides,
 });
 

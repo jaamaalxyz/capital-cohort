@@ -25,6 +25,8 @@ export default {
     setupIncome: 'Set up your income →',
     totalSpent: 'Total Spent',
     remaining: 'Remaining',
+    extraIncome: 'Extra Income',
+    debts: 'Outstanding Debts',
   },
 
   // Expenses Screen
@@ -139,6 +141,7 @@ export default {
   // Budget Card
   budgetCard: {
     remaining: 'Remaining:',
+    incomeLimited: 'Limited by total income',
   },
 
   // Categories
@@ -184,5 +187,26 @@ export default {
   errors: {
     somethingWentWrong: 'Something went wrong',
     unexpectedError: 'An unexpected error occurred. Your data is safe.',
+  },
+
+  // Overflow handling
+  overflow: {
+    categoryTitle: 'Category Overflow',
+    incomeTitle: 'Total Income Overflow',
+    overspentBy: 'You overspent by {{amount}}',
+    addExtraIncome: 'Add Extra Income',
+    addExtraIncomeDesc: 'Cover this with one-time income',
+    addToDebt: 'Add to Debt',
+    addToDebtDesc: 'Track this as money you owe',
+  },
+
+  // Debts Screen
+  debts: {
+    title: 'Debts',
+    noDebts: 'No debts recorded yet',
+    markSettled: 'Mark Settled',
+    settled: 'Settled',
+    outstanding: 'Outstanding',
+    totalSettled: 'Total Settled',
   },
 } as const;

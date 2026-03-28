@@ -21,11 +21,19 @@ import { useTheme } from '../context/ThemeContext';
 import { generateId, getToday, formatDate } from '../utils/formatters';
 import { validateExpense } from '../utils/validation';
 import { getCurrencyByCode } from '../constants/currencies';
+import { 
+  calculateOverflowAmounts, 
+  calculateBudgetSummary, 
+  calculateEffectiveIncome,
+  getExpensesForMonth
+} from '../utils/calculations';
+import { CategoryOverflowModal } from '../components/CategoryOverflowModal';
+import { IncomeOverflowModal } from '../components/IncomeOverflowModal';
 
 export default function AddExpenseScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { addExpense, state } = useBudget();
+  const { addExpense, addDebtEntry, addExtraIncome, state } = useBudget();
   const { colors } = useTheme();
 
   const styles = createStyles(colors);
@@ -36,6 +44,14 @@ export default function AddExpenseScreen() {
   const [category, setCategory] = useState<Category | null>(null);
   const [date, setDate] = useState(getToday());
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [overflow, setOverflow] = useState<{
+    categoryOverflow: number;
+    incomeOverflow: number;
+  } | null>(null);
+  const [pendingExpense, setPendingExpense] = useState<Expense | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showIncomeModal, setShowIncomeModal] = useState(false);
 
   const handleSubmit = () => {
     const expense: Partial<Expense> = {
@@ -67,6 +83,36 @@ export default function AddExpenseScreen() {
       date,
       createdAt: new Date().toISOString(),
     };
+
+    // Check for overflows
+    const effectiveIncome = calculateEffectiveIncome(state.monthlyIncome, state.extraIncomes, state.currentMonth);
+    const monthExpenses = getExpensesForMonth(state.expenses, state.currentMonth);
+    const summary = calculateBudgetSummary(
+      effectiveIncome,
+      monthExpenses,
+      state.budgetRule
+    );
+
+    const overflows = calculateOverflowAmounts(
+      newExpense.amount,
+      newExpense.category,
+      summary,
+      effectiveIncome
+    );
+
+    if (overflows.incomeOverflow > 0) {
+      setOverflow(overflows);
+      setPendingExpense(newExpense);
+      setShowIncomeModal(true);
+      return;
+    }
+
+    if (overflows.categoryOverflow > 0) {
+      setOverflow(overflows);
+      setPendingExpense(newExpense);
+      setShowCategoryModal(true);
+      return;
+    }
 
     addExpense(newExpense);
     router.back();
@@ -176,7 +222,6 @@ export default function AddExpenseScreen() {
         </View>
       </ScrollView>
 
-      {/* Submit Button */}
       <View style={styles.footer}>
         <Pressable
           style={({ pressed }) => [
@@ -190,6 +235,58 @@ export default function AddExpenseScreen() {
           </Text>
         </Pressable>
       </View>
+
+      {/* Modals */}
+      {showCategoryModal && category && overflow && (
+        <CategoryOverflowModal
+          visible={showCategoryModal}
+          category={category}
+          overspentAmount={overflow.categoryOverflow}
+          onClose={() => setShowCategoryModal(false)}
+          onAction={(action) => {
+            setShowCategoryModal(false);
+            addExpense(pendingExpense!);
+            if (action === 'debt') {
+              addDebtEntry({
+                id: generateId(),
+                amount: overflow.categoryOverflow,
+                creditor: t(`categories.${category}` as any),
+                note: pendingExpense!.description,
+                month: state.currentMonth,
+                date: pendingExpense!.date,
+                createdAt: new Date().toISOString(),
+                isSettled: false,
+              });
+            }
+            router.back();
+          }}
+        />
+      )}
+
+      {showIncomeModal && overflow && (
+        <IncomeOverflowModal
+          visible={showIncomeModal}
+          overspentAmount={overflow.incomeOverflow}
+          onClose={() => setShowIncomeModal(false)}
+          onAction={(action) => {
+            setShowIncomeModal(false);
+            addExpense(pendingExpense!);
+            if (action === 'debt') {
+              addDebtEntry({
+                id: generateId(),
+                amount: overflow.incomeOverflow,
+                creditor: t('overflow.incomeTitle'),
+                note: pendingExpense!.description,
+                month: state.currentMonth,
+                date: pendingExpense!.date,
+                createdAt: new Date().toISOString(),
+                isSettled: false,
+              });
+            }
+            router.back();
+          }}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }

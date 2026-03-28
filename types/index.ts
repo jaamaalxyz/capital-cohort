@@ -49,6 +49,8 @@ export interface CategoryBudget {
   remaining: number;
   percentage: number;
   isOverBudget: boolean;
+  effectiveRemaining: number; // min(allocated - spent, income - totalSpent), floor 0
+  isIncomeLimited: boolean; // true when income pool — not category budget — is the binding constraint
 }
 
 export interface BudgetSummary {
@@ -86,6 +88,8 @@ export interface BudgetState {
   recurringTemplates: RecurringTemplate[];
   budgetRule: BudgetRule;
   notificationPrefs: NotificationPreferences;
+  extraIncomes: ExtraIncome[];  // all months; filter by currentMonth at use site
+  debtEntries: DebtEntry[];     // all months
 }
 
 export type BudgetAction =
@@ -104,7 +108,14 @@ export type BudgetAction =
   | { type: 'DELETE_RECURRING_TEMPLATE'; payload: string }
   | { type: 'MATERIALIZE_RECURRING'; payload: { expenses: Expense[]; templates: RecurringTemplate[] } }
   | { type: 'SET_BUDGET_RULE'; payload: BudgetRule }
-  | { type: 'SET_NOTIFICATION_PREFS'; payload: NotificationPreferences };
+  | { type: 'SET_NOTIFICATION_PREFS'; payload: NotificationPreferences }
+  | { type: 'ADD_EXTRA_INCOME'; payload: ExtraIncome }
+  | { type: 'REMOVE_EXTRA_INCOME'; payload: string }   // id
+  | { type: 'ADD_DEBT_ENTRY'; payload: DebtEntry }
+  | { type: 'REMOVE_DEBT_ENTRY'; payload: string }      // id
+  | { type: 'SETTLE_DEBT'; payload: string }            // id → isSettled = true
+  | { type: 'IMPORT_EXTRA_INCOMES'; payload: ExtraIncome[] }
+  | { type: 'IMPORT_DEBT_ENTRIES'; payload: DebtEntry[] };
 
 export interface ValidationResult {
   isValid: boolean;
@@ -137,6 +148,8 @@ export interface ExportPayload {
   currency: string;
   monthlyIncome: number;
   expenses: Expense[];
+  extraIncomes: ExtraIncome[];
+  debtEntries: DebtEntry[];
 }
 
 export type ExportFormat = 'csv' | 'json';
@@ -201,3 +214,23 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
   monthEndSummary: true,
   lastOverBudgetAt: { needs: '', wants: '', savings: '' },
 };
+
+export interface ExtraIncome {
+  id: string; // UUID v4
+  amount: number; // cents
+  description: string; // e.g. "Bonus", "Gift from family"
+  month: string; // YYYY-MM
+  date: string; // YYYY-MM-DD
+  createdAt: string; // ISO timestamp
+}
+
+export interface DebtEntry {
+  id: string; // UUID v4
+  amount: number; // cents — the borrowed amount
+  creditor: string; // who the money was borrowed from
+  note: string; // optional free-text note
+  month: string; // YYYY-MM — month the debt was incurred
+  date: string; // YYYY-MM-DD
+  createdAt: string; // ISO timestamp
+  isSettled: boolean; // default false; toggled by SETTLE_DEBT action
+}

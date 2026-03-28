@@ -94,4 +94,6 @@ export const STORAGE_KEYS = {
   RECURRING_TEMPLATES: '@budget_recurring_templates',
   BUDGET_RULE: '@budget_rule',
   NOTIFICATION_PREFS: '@budget_notification_prefs',
+  EXTRA_INCOMES: '@budget_extra_incomes',
+  DEBT_ENTRIES: '@budget_debt_entries',
 } as const;

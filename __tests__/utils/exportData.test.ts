@@ -65,6 +65,8 @@ describe('expensesToJSON', () => {
     expect(payload).toHaveProperty('currency');
     expect(payload).toHaveProperty('monthlyIncome');
     expect(payload).toHaveProperty('expenses');
+    expect(payload).toHaveProperty('extraIncomes');
+    expect(payload).toHaveProperty('debtEntries');
   });
 
   it('expenses array in JSON preserves original amounts in cents', () => {
@@ -73,10 +75,9 @@ describe('expensesToJSON', () => {
     expect(payload.expenses[0].amount).toBe(5050);
   });
 
-  it('version field is a positive integer', () => {
+  it('version field is 2', () => {
     const payload = JSON.parse(expensesToJSON([], 'USD', 100000));
-    expect(typeof payload.version).toBe('number');
-    expect(payload.version).toBeGreaterThan(0);
+    expect(payload.version).toBe(2);
   });
 });
 

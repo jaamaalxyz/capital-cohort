@@ -108,9 +108,9 @@ describe('Settings screen — functional tests', () => {
   });
 
   it('handles location retrieval error', async () => {
-    // Silence expected console.error for this test
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
     (Location.getCurrentPositionAsync as jest.Mock).mockRejectedValueOnce(
       new Error('GPS Failed'),
     );
@@ -119,10 +119,11 @@ describe('Settings screen — functional tests', () => {
     fireEvent.press(getByTestId('location-btn'));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith('Error', expect.any(String));
+      expect(alertSpy).toHaveBeenCalledWith('Location Unavailable', expect.any(String));
     });
-    
-    consoleSpy.mockRestore();
+
+    consoleErrorSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
   });
 
   it('exports CSV file', async () => {

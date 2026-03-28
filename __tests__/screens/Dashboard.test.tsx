@@ -77,3 +77,45 @@ describe('Dashboard screen — FAB navigation', () => {
     expect(mockPush).toHaveBeenCalledWith('/add-expense');
   });
 });
+
+describe('Dashboard screen — extra income and debts', () => {
+  it('does not show extra income row when none exist', async () => {
+    const { queryByText } = renderDashboard();
+    // Wait for initial load
+    await waitFor(() => expect(queryByText('dashboard.extraIncome')).toBeNull());
+  });
+
+  it('shows debt banner when unsettled debts exist', async () => {
+    const debt = {
+      id: 'd1',
+      amount: 5000,
+      creditor: 'Test',
+      note: 'Note',
+      month: '2026-03',
+      date: '2026-03-01',
+      createdAt: new Date().toISOString(),
+      isSettled: false,
+    };
+    await AsyncStorage.setItem('@budget_debt_entries', JSON.stringify([debt]));
+    
+    const { findByText } = renderDashboard();
+    expect(await findByText(/dashboard\.debts/i)).toBeTruthy();
+  });
+
+  it('navigates to debts screen when banner is pressed', async () => {
+    const mockPush = require('expo-router').useRouter().push;
+    const debt = {
+      id: 'd1',
+      amount: 5000,
+      creditor: 'Test',
+      month: '2026-03',
+      isSettled: false,
+    };
+    await AsyncStorage.setItem('@budget_debt_entries', JSON.stringify([debt]));
+    
+    const { findByText } = renderDashboard();
+    const banner = await findByText(/dashboard\.debts/i);
+    fireEvent.press(banner);
+    expect(mockPush).toHaveBeenCalledWith('/debts');
+  });
+});

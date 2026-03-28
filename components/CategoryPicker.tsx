@@ -35,6 +35,7 @@ export function CategoryPicker({ selected, onSelect }: CategoryPickerProps) {
               },
             ]}
             onPress={() => onSelect(category)}
+            testID={`category-picker-option-${category}`}
           >
             <Text style={styles.icon}>{config.icon}</Text>
             <Text

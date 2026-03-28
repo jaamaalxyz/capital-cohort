@@ -15,10 +15,13 @@ import {
   saveTheme,
   loadTheme,
   clearAllData,
+  saveExtraIncomes,
+  loadExtraIncomes,
+  saveDebtEntries,
+  loadDebtEntries,
 } from '../../utils/storage';
-import { RecurringTemplate } from '../../types';
 import { STORAGE_KEYS } from '../../constants/theme';
-import { Expense } from '../../types';
+import { Expense, ExtraIncome, DebtEntry, RecurringTemplate } from '../../types';
 
 const makeExpense = (overrides: Partial<Expense> = {}): Expense => ({
   id: 'test-1',
@@ -376,5 +379,64 @@ describe('Storage Resilience', () => {
     (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('invalid-json');
     const result = await loadLocation();
     expect(result).toBeUndefined();
+  });
+});
+
+describe('ExtraIncome storage', () => {
+  const makeExtraIncome = (overrides: Partial<ExtraIncome> = {}): ExtraIncome => ({
+    id: 'ei-1',
+    amount: 50000,
+    description: 'Bonus',
+    month: '2026-03',
+    date: '2026-03-15',
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  });
+
+  it('saveExtraIncomes and loadExtraIncomes round-trip correctly', async () => {
+    const incomes: ExtraIncome[] = [makeExtraIncome()];
+    await saveExtraIncomes(incomes);
+    const loaded = await loadExtraIncomes();
+    expect(loaded).toEqual(incomes);
+  });
+
+  it('loadExtraIncomes returns [] when storage is empty', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(null);
+    expect(await loadExtraIncomes()).toEqual([]);
+  });
+
+  it('loadExtraIncomes returns [] and logs error when storage is corrupted', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('not-json');
+    expect(await loadExtraIncomes()).toEqual([]);
+  });
+});
+
+describe('DebtEntry storage', () => {
+  const makeDebtEntry = (overrides: Partial<DebtEntry> = {}): DebtEntry => ({
+    id: 'de-1',
+    amount: 30000,
+    creditor: 'Mom',
+    note: 'Rent gap',
+    month: '2026-03',
+    date: '2026-03-16',
+    createdAt: new Date().toISOString(),
+    isSettled: false,
+    ...overrides,
+  });
+
+  it('saveDebtEntries and loadDebtEntries round-trip correctly', async () => {
+    const entries: DebtEntry[] = [makeDebtEntry()];
+    await saveDebtEntries(entries);
+    expect(await loadDebtEntries()).toEqual(entries);
+  });
+
+  it('loadDebtEntries returns [] when storage is empty', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(null);
+    expect(await loadDebtEntries()).toEqual([]);
+  });
+
+  it('loadDebtEntries returns [] and logs error when storage is corrupted', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('{broken');
+    expect(await loadDebtEntries()).toEqual([]);
   });
 });

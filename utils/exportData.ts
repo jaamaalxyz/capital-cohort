@@ -1,4 +1,4 @@
-import { Expense, ExportPayload, ExportFormat } from '../types';
+import { Expense, ExportPayload, ExportFormat, ExtraIncome, DebtEntry } from '../types';
 
 const CSV_HEADER = 'date,description,category,amount\n';
 
@@ -24,14 +24,18 @@ export function expensesToCSV(expenses: Expense[]): string {
 export function expensesToJSON(
   expenses: Expense[],
   currency: string,
-  monthlyIncome: number
+  monthlyIncome: number,
+  extraIncomes: ExtraIncome[] = [],
+  debtEntries: DebtEntry[] = []
 ): string {
   const payload: ExportPayload = {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     currency,
     monthlyIncome,
     expenses,
+    extraIncomes,
+    debtEntries,
   };
   return JSON.stringify(payload, null, 2);
 }

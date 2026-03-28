@@ -44,6 +44,14 @@ function DashboardContent() {
   const isCurrentMonth = state.currentMonth === getCurrentMonth();
   const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
 
+  const monthlyExtraIncome = state.extraIncomes
+    .filter((e) => e.month === state.currentMonth)
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const outstandingDebt = state.debtEntries
+    .filter((d) => !d.isSettled)
+    .reduce((sum, d) => sum + d.amount, 0);
+
   return (
     <ScreenContainer>
       <ScrollView
@@ -51,6 +59,19 @@ function DashboardContent() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Debt Banner */}
+        {outstandingDebt > 0 && (
+          <Pressable
+            style={styles.debtBanner}
+            onPress={() => router.push('/debts')}
+          >
+            <Text style={styles.debtBannerText}>
+              ⚠️ {t('dashboard.debts')}: {formatCurrency(outstandingDebt, currencySymbol)}
+            </Text>
+            <Text style={styles.debtBannerLink}>→</Text>
+          </Pressable>
+        )}
+
         {/* Month Selector */}
         <View style={styles.monthSelector}>
           <Pressable
@@ -81,6 +102,13 @@ function DashboardContent() {
           <Text style={styles.incomeAmount}>
             {formatCurrency(state.monthlyIncome, currencySymbol)}
           </Text>
+          {monthlyExtraIncome > 0 && (
+            <View style={styles.extraIncomeRow}>
+              <Text style={styles.extraIncomeLabel}>
+                + {t('dashboard.extraIncome')}: {formatCurrency(monthlyExtraIncome, currencySymbol)}
+              </Text>
+            </View>
+          )}
           {state.monthlyIncome === 0 && (
             <Pressable
               onPress={() => router.push('/(tabs)/settings')}
@@ -263,6 +291,39 @@ const createStyles = (colors: any) =>
       color: '#FFFFFF',
       fontWeight: '300',
       lineHeight: 34,
+    },
+    debtBanner: {
+      backgroundColor: colors.wants + '20',
+      padding: SPACING.md,
+      borderRadius: 12,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: SPACING.lg,
+      borderWidth: 1,
+      borderColor: colors.wants + '40',
+    },
+    debtBannerText: {
+      color: colors.wants,
+      fontWeight: '600',
+      fontSize: FONT_SIZE.body,
+    },
+    debtBannerLink: {
+      color: colors.wants,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    extraIncomeRow: {
+      marginTop: SPACING.xs,
+      paddingHorizontal: SPACING.sm,
+      paddingVertical: 2,
+      backgroundColor: colors.savings + '15',
+      borderRadius: 6,
+    },
+    extraIncomeLabel: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.success,
+      fontWeight: '600',
     },
   });
 export default function DashboardScreen() {

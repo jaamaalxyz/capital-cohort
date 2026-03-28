@@ -18,14 +18,15 @@ import {
   BudgetRule,
   NotificationPreferences,
   Category,
+  ExtraIncome,
+  DebtEntry,
+  ThemeMode,
 } from '../types';
-import { getCurrentMonth } from '../utils/formatters';
 import {
   saveIncome,
   loadIncome,
   saveExpenses,
   loadExpenses,
-  clearAllData,
   saveCurrency,
   loadCurrency,
   saveLocation,
@@ -34,21 +35,30 @@ import {
   loadOnboardingCompleted,
   saveRecurringTemplates,
   loadRecurringTemplates,
+  saveTheme,
+  loadTheme,
   saveBudgetRule,
   loadBudgetRule,
-  saveNotificationPrefs,
   loadNotificationPrefs,
+  saveNotificationPrefs,
+  saveExtraIncomes,
+  loadExtraIncomes,
+  saveDebtEntries,
+  loadDebtEntries,
+  clearAllData,
 } from '../utils/storage';
-import { materializeAllForMonth } from '../utils/recurringExpenses';
-import { DEFAULT_CURRENCY } from '../constants/currencies';
-import { DEFAULT_BUDGET_RULE } from '../constants/budgetPresets';
-import { DEFAULT_NOTIFICATION_PREFS } from '../types';
-import { scheduleOverBudgetAlert, scheduleDailyReminder, cancelDailyReminder } from '../utils/notifications';
-import {
-  calculateBudgetSummary,
-  getExpensesForMonth,
-} from '../utils/calculations';
 import { logError } from '../utils/errorLogger';
+import { DEFAULT_NOTIFICATION_PREFS } from '../types';
+import { DEFAULT_BUDGET_RULE } from '../constants/budgetPresets';
+import { DEFAULT_CURRENCY } from '../constants/currencies';
+import { materializeAllForMonth } from '../utils/recurringExpenses';
+import { calculateBudgetSummary, getExpensesForMonth } from '../utils/calculations';
+import {
+  scheduleOverBudgetAlert,
+  scheduleDailyReminder,
+  cancelDailyReminder,
+} from '../utils/notifications';
+import { getCurrentMonth } from '../utils/formatters';
 
 const initialState: BudgetState = {
   monthlyIncome: 0,
@@ -61,6 +71,8 @@ const initialState: BudgetState = {
   recurringTemplates: [],
   budgetRule: DEFAULT_BUDGET_RULE,
   notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
+  extraIncomes: [],
+  debtEntries: [],
 };
 
 function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
@@ -110,13 +122,54 @@ function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
       return { ...state, budgetRule: action.payload };
     case 'SET_NOTIFICATION_PREFS':
       return { ...state, notificationPrefs: action.payload };
-    case 'RESET_ALL':
-      return {
-        ...initialState,
-        isLoading: false,
-        currentMonth: getCurrentMonth(),
-        budgetRule: DEFAULT_BUDGET_RULE,
+    case 'ADD_EXTRA_INCOME': {
+      const newState = {
+        ...state,
+        extraIncomes: [...state.extraIncomes, action.payload],
       };
+      saveExtraIncomes(newState.extraIncomes);
+      return newState;
+    }
+    case 'REMOVE_EXTRA_INCOME': {
+      const newState = {
+        ...state,
+        extraIncomes: state.extraIncomes.filter((i) => i.id !== action.payload),
+      };
+      saveExtraIncomes(newState.extraIncomes);
+      return newState;
+    }
+    case 'ADD_DEBT_ENTRY': {
+      const newState = {
+        ...state,
+        debtEntries: [...state.debtEntries, action.payload],
+      };
+      saveDebtEntries(newState.debtEntries);
+      return newState;
+    }
+    case 'SETTLE_DEBT': {
+      const newState = {
+        ...state,
+        debtEntries: state.debtEntries.map((d) =>
+          d.id === action.payload ? { ...d, isSettled: true } : d
+        ),
+      };
+      saveDebtEntries(newState.debtEntries);
+      return newState;
+    }
+    case 'REMOVE_DEBT_ENTRY': {
+      const newState = {
+        ...state,
+        debtEntries: state.debtEntries.filter((d) => d.id !== action.payload),
+      };
+      saveDebtEntries(newState.debtEntries);
+      return newState;
+    }
+    case 'IMPORT_EXTRA_INCOMES':
+      return { ...state, extraIncomes: action.payload };
+    case 'IMPORT_DEBT_ENTRIES':
+      return { ...state, debtEntries: action.payload };
+    case 'RESET_ALL':
+      return { ...initialState, isLoading: false };
     default:
       return state;
   }
@@ -133,47 +186,63 @@ interface BudgetContextType {
   setCurrency: (currency: string) => void;
   setLocation: (location: LocationPreference | undefined) => void;
   completeOnboarding: () => void;
-  resetAll: () => void;
+  resetAll: () => Promise<void>;
   loadData: (payload: Partial<BudgetState>) => void;
   addRecurringTemplate: (template: RecurringTemplate) => void;
   updateRecurringTemplate: (template: RecurringTemplate) => void;
   deleteRecurringTemplate: (id: string) => void;
   setBudgetRule: (rule: BudgetRule) => void;
   setNotificationPrefs: (prefs: NotificationPreferences) => void;
+  addExtraIncome: (income: ExtraIncome) => void;
+  deleteExtraIncome: (id: string) => void;
+  addDebtEntry: (entry: DebtEntry) => void;
+  settleDebt: (id: string) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(budgetReducer, initialState);
-  // Tracks the active web setTimeout ID so we can cancel before rescheduling
   const webReminderIdRef = useRef<string>('');
 
-  // Load data on mount
   useEffect(() => {
     async function loadData() {
       try {
-        const [income, expenses, currency, location, onboardingCompleted, recurringTemplates, budgetRule, notificationPrefs] =
-          await Promise.all([
-            loadIncome(),
-            loadExpenses(),
-            loadCurrency(),
-            loadLocation(),
-            loadOnboardingCompleted(),
-            loadRecurringTemplates(),
-            loadBudgetRule(),
-            loadNotificationPrefs(),
-          ]);
+        const [
+          income,
+          expenses,
+          currency,
+          onboarding,
+          location,
+          templates,
+          rule,
+          extraIncomes,
+          debtEntries,
+          notificationPrefs,
+        ] = await Promise.all([
+          loadIncome(),
+          loadExpenses(),
+          loadCurrency(),
+          loadOnboardingCompleted(),
+          loadLocation(),
+          loadRecurringTemplates(),
+          loadBudgetRule(),
+          loadExtraIncomes(),
+          loadDebtEntries(),
+          loadNotificationPrefs(),
+        ]);
         dispatch({
           type: 'LOAD_DATA',
           payload: {
             monthlyIncome: income,
             expenses,
             currency,
+            onboardingCompleted: onboarding,
             location,
-            onboardingCompleted,
-            recurringTemplates,
-            budgetRule,
+            recurringTemplates: templates,
+            budgetRule: rule,
+            extraIncomes,
+            debtEntries,
             notificationPrefs,
           },
         });
@@ -185,65 +254,54 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     loadData();
   }, []);
 
-  // Save income when it changes
   useEffect(() => {
     if (!state.isLoading) {
       saveIncome(state.monthlyIncome);
     }
   }, [state.monthlyIncome, state.isLoading]);
 
-  // Save expenses when they change
   useEffect(() => {
     if (!state.isLoading) {
       saveExpenses(state.expenses);
     }
   }, [state.expenses, state.isLoading]);
 
-  // Save currency when it changes
   useEffect(() => {
     if (!state.isLoading) {
       saveCurrency(state.currency);
     }
   }, [state.currency, state.isLoading]);
 
-  // Save location when it changes
   useEffect(() => {
     if (!state.isLoading) {
       saveLocation(state.location);
     }
   }, [state.location, state.isLoading]);
 
-  // Save onboarding status when it changes
   useEffect(() => {
     if (!state.isLoading) {
       saveOnboardingCompleted(state.onboardingCompleted);
     }
   }, [state.onboardingCompleted, state.isLoading]);
 
-  // Save recurring templates when they change
   useEffect(() => {
     if (!state.isLoading) {
       saveRecurringTemplates(state.recurringTemplates);
     }
   }, [state.recurringTemplates, state.isLoading]);
 
-  // Save budget rule when it changes
   useEffect(() => {
     if (!state.isLoading) {
       saveBudgetRule(state.budgetRule);
     }
   }, [state.budgetRule, state.isLoading]);
 
-  // Save notification prefs
   useEffect(() => {
     if (!state.isLoading) {
       saveNotificationPrefs(state.notificationPrefs);
     }
   }, [state.notificationPrefs, state.isLoading]);
 
-  // Web: reschedule daily reminder whenever the page loads or prefs change.
-  // setTimeout is wiped on every HMR reload in dev, so we must re-create it
-  // each time. Cancel the previous ID first to avoid stacking duplicate timers.
   useEffect(() => {
     if (Platform.OS !== 'web' || state.isLoading) return;
     if (webReminderIdRef.current) {
@@ -257,7 +315,6 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }
   }, [state.isLoading, state.notificationPrefs.dailyReminder, state.notificationPrefs.dailyReminderTime]);
 
-  // Materialize recurring templates after load
   useEffect(() => {
     if (!state.isLoading) {
       const { newExpenses, updatedTemplates } = materializeAllForMonth(
@@ -283,7 +340,6 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     [state.monthlyIncome, currentMonthExpenses, state.budgetRule],
   );
 
-  // Over-budget alert trigger
   useEffect(() => {
     if (!state.isLoading && state.notificationPrefs.overBudgetAlerts) {
       const categories: Category[] = ['needs', 'wants', 'savings'];
@@ -293,7 +349,6 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       categories.forEach((cat) => {
         const catSummary = summary[cat];
         if (catSummary.isOverBudget) {
-          // Check if we already alerted for this category this month
           if (state.notificationPrefs.lastOverBudgetAt[cat] !== state.currentMonth) {
             scheduleOverBudgetAlert(
               cat,
@@ -361,13 +416,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'DELETE_RECURRING_TEMPLATE', payload: id });
   };
 
-  const setBudgetRule = (rule: BudgetRule) => {
-    dispatch({ type: 'SET_BUDGET_RULE', payload: rule });
-  };
-
-  const setNotificationPrefs = (prefs: NotificationPreferences) => {
-    dispatch({ type: 'SET_NOTIFICATION_PREFS', payload: prefs });
-  };
+  const setBudgetRule = (rule: BudgetRule) => dispatch({ type: 'SET_BUDGET_RULE', payload: rule });
+  const setNotificationPrefs = (prefs: NotificationPreferences) => dispatch({ type: 'SET_NOTIFICATION_PREFS', payload: prefs });
+  const addExtraIncome = (income: ExtraIncome) => dispatch({ type: 'ADD_EXTRA_INCOME', payload: income });
+  const deleteExtraIncome = (id: string) => dispatch({ type: 'REMOVE_EXTRA_INCOME', payload: id });
+  const addDebtEntry = (entry: DebtEntry) => dispatch({ type: 'ADD_DEBT_ENTRY', payload: entry });
+  const settleDebt = (id: string) => dispatch({ type: 'SETTLE_DEBT', payload: id });
 
   return (
     <BudgetContext.Provider
@@ -389,6 +443,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         deleteRecurringTemplate,
         setBudgetRule,
         setNotificationPrefs,
+        addExtraIncome,
+        deleteExtraIncome,
+        addDebtEntry,
+        settleDebt,
       }}
     >
       {children}
