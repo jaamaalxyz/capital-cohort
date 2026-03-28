@@ -40,9 +40,6 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-// ---------------------------------------------------------------------------
-// Income
-// ---------------------------------------------------------------------------
 describe('saveIncome / loadIncome', () => {
   it('saves income and loads it back', async () => {
     await saveIncome(150000);
@@ -60,20 +57,19 @@ describe('saveIncome / loadIncome', () => {
     await saveIncome(50000);
     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
       STORAGE_KEYS.INCOME,
-      JSON.stringify(50000)
+      JSON.stringify(50000),
     );
   });
 
   it('returns 0 and does not throw on AsyncStorage error', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error('Storage error'),
+    );
     const loaded = await loadIncome();
     expect(loaded).toBe(0);
   });
 });
 
-// ---------------------------------------------------------------------------
-// Expenses
-// ---------------------------------------------------------------------------
 describe('saveExpenses / loadExpenses', () => {
   it('saves expenses and loads them back', async () => {
     const expenses = [makeExpense()];
@@ -94,12 +90,14 @@ describe('saveExpenses / loadExpenses', () => {
     await saveExpenses(expenses);
     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
       STORAGE_KEYS.EXPENSES,
-      JSON.stringify(expenses)
+      JSON.stringify(expenses),
     );
   });
 
   it('returns empty array on storage error', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     const loaded = await loadExpenses();
     expect(loaded).toEqual([]);
   });
@@ -116,9 +114,6 @@ describe('saveExpenses / loadExpenses', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Currency
-// ---------------------------------------------------------------------------
 describe('saveCurrency / loadCurrency', () => {
   it('saves and loads currency code', async () => {
     await saveCurrency('EUR');
@@ -134,9 +129,6 @@ describe('saveCurrency / loadCurrency', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Onboarding
-// ---------------------------------------------------------------------------
 describe('saveOnboardingCompleted / loadOnboardingCompleted', () => {
   it('saves and loads onboarding completed = true', async () => {
     await saveOnboardingCompleted(true);
@@ -157,9 +149,6 @@ describe('saveOnboardingCompleted / loadOnboardingCompleted', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Theme
-// ---------------------------------------------------------------------------
 describe('saveTheme / loadTheme', () => {
   it('saves and loads theme value', async () => {
     await saveTheme('dark');
@@ -182,9 +171,6 @@ describe('saveTheme / loadTheme', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Location
-// ---------------------------------------------------------------------------
 describe('saveLocation / loadLocation', () => {
   it('saves and loads a location object', async () => {
     const location = { latitude: 23.8, longitude: 90.4, country: 'Bangladesh' };
@@ -210,17 +196,18 @@ describe('saveLocation / loadLocation', () => {
   });
 
   it('returns undefined on storage error', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     const loaded = await loadLocation();
     expect(loaded).toBeUndefined();
   });
 });
 
-// ---------------------------------------------------------------------------
-// Recurring Templates
-// ---------------------------------------------------------------------------
 describe('saveRecurringTemplates / loadRecurringTemplates', () => {
-  const makeTemplate = (overrides: Partial<RecurringTemplate> = {}): RecurringTemplate => ({
+  const makeTemplate = (
+    overrides: Partial<RecurringTemplate> = {},
+  ): RecurringTemplate => ({
     id: 'tmpl-1',
     amount: 50000,
     description: 'Rent',
@@ -246,78 +233,89 @@ describe('saveRecurringTemplates / loadRecurringTemplates', () => {
   });
 
   it('saves multiple templates', async () => {
-    const templates = [
-      makeTemplate({ id: 't1' }),
-      makeTemplate({ id: 't2' }),
-    ];
+    const templates = [makeTemplate({ id: 't1' }), makeTemplate({ id: 't2' })];
     await saveRecurringTemplates(templates);
     const loaded = await loadRecurringTemplates();
     expect(loaded).toHaveLength(2);
   });
 
   it('returns empty array on storage error', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     const loaded = await loadRecurringTemplates();
     expect(loaded).toEqual([]);
   });
 });
 
-// ---------------------------------------------------------------------------
-// Save error paths (coverage for catch blocks)
-// ---------------------------------------------------------------------------
 describe('save functions — error handling', () => {
   it('saveIncome does not throw on storage error', async () => {
-    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     await expect(saveIncome(1000)).resolves.not.toThrow();
   });
 
   it('saveExpenses does not throw on storage error', async () => {
-    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     await expect(saveExpenses([])).resolves.not.toThrow();
   });
 
   it('saveCurrency does not throw on storage error', async () => {
-    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     await expect(saveCurrency('USD')).resolves.not.toThrow();
   });
 
   it('loadCurrency returns default on storage error', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     const result = await loadCurrency();
     expect(typeof result).toBe('string');
   });
 
   it('saveOnboardingCompleted does not throw on storage error', async () => {
-    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     await expect(saveOnboardingCompleted(true)).resolves.not.toThrow();
   });
 
   it('loadOnboardingCompleted returns false on storage error', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     const result = await loadOnboardingCompleted();
     expect(result).toBe(false);
   });
 
   it('saveTheme does not throw on storage error', async () => {
-    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     await expect(saveTheme('dark')).resolves.not.toThrow();
   });
 
   it('loadTheme returns null on storage error', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     const result = await loadTheme();
     expect(result).toBeNull();
   });
 
   it('clearAllData does not throw on storage error', async () => {
-    (AsyncStorage.multiRemove as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (AsyncStorage.multiRemove as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
     await expect(clearAllData()).resolves.not.toThrow();
   });
 });
 
-// ---------------------------------------------------------------------------
-// clearAllData
-// ---------------------------------------------------------------------------
 describe('clearAllData', () => {
   it('calls AsyncStorage.multiRemove', async () => {
     await clearAllData();
@@ -326,7 +324,8 @@ describe('clearAllData', () => {
 
   it('removes all known storage keys', async () => {
     await clearAllData();
-    const removedKeys = (AsyncStorage.multiRemove as jest.Mock).mock.calls[0][0];
+    const removedKeys = (AsyncStorage.multiRemove as jest.Mock).mock
+      .calls[0][0];
     expect(removedKeys).toContain(STORAGE_KEYS.INCOME);
     expect(removedKeys).toContain(STORAGE_KEYS.EXPENSES);
     expect(removedKeys).toContain(STORAGE_KEYS.CURRENCY);
@@ -336,20 +335,46 @@ describe('clearAllData', () => {
 
 describe('Storage Resilience', () => {
   it('loadIncome returns 0 when stored value is not a number', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(JSON.stringify({ bad: 'data' }));
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(
+      JSON.stringify({ bad: 'data' }),
+    );
     const result = await loadIncome();
     expect(result).toBe(0);
   });
 
   it('loadExpenses returns [] when stored value is not an array', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(JSON.stringify({ not: 'an-array' }));
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(
+      JSON.stringify({ not: 'an-array' }),
+    );
     const result = await loadExpenses();
     expect(result).toEqual([]);
   });
 
   it('loadExpenses returns [] when stored value is corrupt JSON', async () => {
-    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('corrupt-json-!@#');
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(
+      'corrupt-json-!@#',
+    );
     const result = await loadExpenses();
     expect(result).toEqual([]);
+  });
+
+  it('loadRecurringTemplates returns [] when stored value is not an array', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(
+      JSON.stringify({ bad: 'data' }),
+    );
+    const result = await loadRecurringTemplates();
+    expect(result).toEqual([]);
+  });
+
+  it('loadRecurringTemplates returns [] when stored value is corrupt JSON', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('!!!');
+    const result = await loadRecurringTemplates();
+    expect(result).toEqual([]);
+  });
+
+  it('loadLocation returns undefined when stored value is corrupt JSON', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('invalid-json');
+    const result = await loadLocation();
+    expect(result).toBeUndefined();
   });
 });

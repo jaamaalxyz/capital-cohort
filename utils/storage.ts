@@ -8,7 +8,7 @@ export async function saveIncome(income: number): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.INCOME, JSON.stringify(income));
   } catch (error) {
-    console.error('Error saving income:', error);
+    logError(error as Error, undefined, 'storage.saveIncome');
   }
 }
 
@@ -32,7 +32,7 @@ export async function saveExpenses(expenses: Expense[]): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
   } catch (error) {
-    console.error('Error saving expenses:', error);
+    logError(error as Error, undefined, 'storage.saveExpenses');
   }
 }
 
@@ -56,7 +56,7 @@ export async function saveCurrency(currency: string): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.CURRENCY, currency);
   } catch (error) {
-    console.error('Error saving currency:', error);
+    logError(error as Error, undefined, 'storage.saveCurrency');
   }
 }
 
@@ -65,7 +65,7 @@ export async function loadCurrency(): Promise<string> {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.CURRENCY);
     return value ?? DEFAULT_CURRENCY;
   } catch (error) {
-    console.error('Error loading currency:', error);
+    logError(error as Error, undefined, 'storage.loadCurrency');
     return DEFAULT_CURRENCY;
   }
 }
@@ -81,7 +81,7 @@ export async function saveLocation(location: any): Promise<void> {
       );
     }
   } catch (error) {
-    console.error('Error saving location:', error);
+    logError(error as Error, undefined, 'storage.saveLocation');
   }
 }
 
@@ -90,7 +90,7 @@ export async function loadLocation(): Promise<any> {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.LOCATION);
     return value ? JSON.parse(value) : undefined;
   } catch (error) {
-    console.error('Error loading location:', error);
+    logError(error as Error, undefined, 'storage.loadLocation');
     return undefined;
   }
 }
@@ -104,7 +104,7 @@ export async function saveOnboardingCompleted(
       JSON.stringify(completed),
     );
   } catch (error) {
-    console.error('Error saving onboarding status:', error);
+    logError(error as Error, undefined, 'storage.saveOnboarding');
   }
 }
 
@@ -125,16 +125,22 @@ export async function saveRecurringTemplates(templates: RecurringTemplate[]): Pr
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.RECURRING_TEMPLATES, JSON.stringify(templates));
   } catch (error) {
-    console.error('Error saving recurring templates:', error);
+    logError(error as Error, undefined, 'storage.saveRecurringTemplates');
   }
 }
 
 export async function loadRecurringTemplates(): Promise<RecurringTemplate[]> {
   try {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.RECURRING_TEMPLATES);
-    return value ? JSON.parse(value) : [];
+    if (!value) return [];
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      logError(new Error('Recurring templates storage corrupted'), undefined, 'storage.loadRecurringTemplates');
+      return [];
+    }
+    return parsed;
   } catch (error) {
-    console.error('Error loading recurring templates:', error);
+    logError(error as Error, undefined, 'storage.loadRecurringTemplates');
     return [];
   }
 }
@@ -143,7 +149,7 @@ export async function saveTheme(theme: ThemeMode): Promise<void> {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.THEME, theme);
   } catch (error) {
-    console.error('Error saving theme:', error);
+    logError(error as Error, undefined, 'storage.saveTheme');
   }
 }
 
@@ -152,7 +158,7 @@ export async function loadTheme(): Promise<ThemeMode | null> {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.THEME);
     return value as ThemeMode | null;
   } catch (error) {
-    console.error('Error loading theme:', error);
+    logError(error as Error, undefined, 'storage.loadTheme');
     return null;
   }
 }
@@ -171,6 +177,6 @@ export async function clearAllData(): Promise<void> {
       STORAGE_KEYS.RECURRING_TEMPLATES,
     ]);
   } catch (error) {
-    console.error('Error clearing data:', error);
+    logError(error as Error, undefined, 'storage.clearAllData');
   }
 }
