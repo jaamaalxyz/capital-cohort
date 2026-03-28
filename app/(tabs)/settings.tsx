@@ -254,8 +254,11 @@ function SettingsContent() {
         country: address?.country || undefined,
       });
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Could not get your location.');
+      if (__DEV__) console.warn('Location error:', error);
+      Alert.alert(
+        'Location Unavailable',
+        'Could not get your location. On an emulator, set a mock location via Extended Controls (⋯ → Location).',
+      );
     } finally {
       setIsLocating(false);
     }

@@ -16,7 +16,6 @@ const isNative = Platform.OS !== 'web';
 if (isNative) {
   ExpoNotifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
       shouldShowBanner: true,

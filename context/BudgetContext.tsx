@@ -48,6 +48,7 @@ import {
   calculateBudgetSummary,
   getExpensesForMonth,
 } from '../utils/calculations';
+import { logError } from '../utils/errorLogger';
 
 const initialState: BudgetState = {
   monthlyIncome: 0,
@@ -177,7 +178,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
           },
         });
       } catch (error) {
-        console.error('[DEBUG] BudgetProvider: Error loading data:', error);
+        logError(error as Error, undefined, 'BudgetProvider');
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     }

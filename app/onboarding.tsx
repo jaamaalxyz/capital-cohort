@@ -105,8 +105,8 @@ export default function OnboardingScreen() {
 
       handleNext();
     } catch (error) {
-      console.error(error);
-      setLocationError('Error getting location');
+      if (__DEV__) console.warn('Location error:', error);
+      setLocationError('Could not get location. On an emulator, set a mock location via Extended Controls (⋯ → Location).');
     } finally {
       setIsLocating(false);
     }
