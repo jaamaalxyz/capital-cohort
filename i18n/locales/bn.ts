@@ -35,6 +35,10 @@ export default {
     addFirstExpense: 'হোম স্ক্রিন থেকে\nআপনার প্রথম খরচ যোগ করুন',
     deleteTitle: 'খরচ মুছুন',
     deleteMessage: 'আপনি কি নিশ্চিত যে আপনি এই খরচটি মুছতে চান?',
+    searchPlaceholder: 'খরচ খুঁজুন...',
+    clearFilters: 'সব ফিল্টার সরান',
+    noMatches: 'কোনো ফলাফল পাওয়া যায়নি',
+    adjustFilters: 'আপনার অনুসন্ধান বা ফিল্টার পরিবর্তন করে দেখুন।',
   },
 
   // Settings Screen
@@ -52,12 +56,18 @@ export default {
     rule503020: '৫০/৩০/২০ নিয়ম',
     ruleDescription:
       'একটি সহজ বাজেট নিয়ম যা আপনার কর-পরবর্তী আয়কে তিনটি বিভাগে ভাগ করে:',
-    needsRule: '৫০% প্রয়োজনীয়:',
+    needsRule: 'প্রয়োজনীয়:',
     needsRuleDesc: 'অপরিহার্য খরচ যা আপনাকে অবশ্যই দিতে হবে',
-    wantsRule: '৩০% ইচ্ছা:',
+    wantsRule: 'ইচ্ছা:',
     wantsRuleDesc: 'বিনোদনের জন্য অপ্রয়োজনীয় খরচ',
-    savingsRule: '২০% সঞ্চয়:',
+    savingsRule: 'সঞ্চয়:',
     savingsRuleDesc: 'আপনার আর্থিক ভবিষ্যৎ গড়ে তোলা',
+    budgetRules: {
+      title: 'বাজেট নিয়ম',
+      selectPreset: 'একটি প্রিসেট নির্বাচন করুন বা কাস্টমাইজ করুন:',
+      custom: 'কাস্টম',
+      update: 'বাজেট নিয়ম আপডেট করুন',
+    },
     dangerZone: 'বিপদ অঞ্চল',
     resetAllData: 'সব ডেটা রিসেট করুন',
     resetTitle: 'সব ডেটা রিসেট করুন',
@@ -79,6 +89,9 @@ export default {
     allowLocation: 'অবস্থানের অনুমতি দিন',
     locating: 'অবস্থান খোঁজা হচ্ছে...',
     noLocation: 'কোনো অবস্থান নির্বাচন করা হয়নি',
+    recurring: 'পুনরাবৃত্তি খরচ',
+    manageRecurring: 'পুনরাবৃত্তি খরচ পরিচালনা করুন',
+    recurringDesc: 'মাসিক বিল ও সাবস্ক্রিপশন স্বয়ংক্রিয়ভাবে যোগ করুন',
   },
 
   // Onboarding
@@ -149,6 +162,23 @@ export default {
     title: 'পৃষ্ঠা পাওয়া যায়নি',
     subtitle: 'আপনি যে পৃষ্ঠাটি খুঁজছেন তা বিদ্যমান নেই।',
     goHome: 'হোমে ফিরে যান',
+  },
+
+  // Recurring Expenses
+  recurring: {
+    title: 'পুনরাবৃত্তি',
+    noRecurring: 'কোনো পুনরাবৃত্তি খরচ নেই',
+    addFirstRecurring:
+      'ভাড়া বা সাবস্ক্রিপশনের মতো মাসিক খরচ স্বয়ংক্রিয়ভাবে যোগ করতে পুনরাবৃত্তি টেমপ্লেট যোগ করুন।',
+    deleteTitle: 'পুনরাবৃত্তি মুছুন',
+    deleteMessage:
+      'এই পুনরাবৃত্তি খরচের টেমপ্লেট সরিয়ে দেবেন? পূর্ববর্তী খরচগুলি মুছে যাবে না।',
+    addTitle: 'পুনরাবৃত্তি যোগ করুন',
+    editTitle: 'পুনরাবৃত্তি সম্পাদনা করুন',
+    dayOfMonth: 'মাসের দিন',
+    activeLabel: 'সক্রিয়',
+    inactiveLabel: 'নিষ্ক্রিয়',
+    saveTemplate: 'টেমপ্লেট সংরক্ষণ করুন',
   },
 
   // Error Messages

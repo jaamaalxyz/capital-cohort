@@ -41,6 +41,7 @@ const ContextConsumer: React.FC<ConsumerProps> = ({ onReady }) => {
       <Text testID="loading">{String(ctx.state.isLoading)}</Text>
       <Text testID="location">{JSON.stringify(ctx.state.location)}</Text>
       <Text testID="template-count">{ctx.state.recurringTemplates.length}</Text>
+      <Text testID="budget-rule">{JSON.stringify(ctx.state.budgetRule)}</Text>
     </>
   );
 };
@@ -175,6 +176,30 @@ describe('BudgetContext — Recurring Templates', () => {
     });
     await waitFor(() =>
       expect(getByTestId('template-count').props.children).toBe(0),
+    );
+  });
+});
+
+describe('BudgetContext — setBudgetRule', () => {
+  it('updates budgetRule in state', async () => {
+    let ctx: ReturnType<typeof useBudget> | null = null;
+    const { getByTestId } = renderWithProvider({
+      onReady: (c) => {
+        ctx = c;
+      },
+    });
+
+    await waitFor(() =>
+      expect(getByTestId('loading').props.children).toBe('false'),
+    );
+
+    const newRule = { needs: 60, wants: 20, savings: 20 };
+    act(() => {
+      ctx!.setBudgetRule(newRule);
+    });
+
+    await waitFor(() =>
+      expect(getByTestId('budget-rule').props.children).toBe(JSON.stringify(newRule)),
     );
   });
 });

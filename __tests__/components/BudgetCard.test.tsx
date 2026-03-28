@@ -19,6 +19,7 @@ const renderCard = (props?: Partial<React.ComponentProps<typeof BudgetCard>>) =>
       <BudgetCard
         category="needs"
         budget={makeBudget()}
+        rulePercentage={50}
         currencySymbol="$"
         {...props}
       />

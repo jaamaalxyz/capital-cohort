@@ -38,7 +38,6 @@ export interface RecurringTemplate {
 
 export interface CategoryConfig {
   label: string;
-  percentage: number;
   color: string;
   icon: string;
   description: string;
@@ -85,6 +84,7 @@ export interface BudgetState {
   location?: LocationPreference;
   onboardingCompleted: boolean;
   recurringTemplates: RecurringTemplate[];
+  budgetRule: BudgetRule;
 }
 
 export type BudgetAction =
@@ -101,7 +101,8 @@ export type BudgetAction =
   | { type: 'ADD_RECURRING_TEMPLATE'; payload: RecurringTemplate }
   | { type: 'UPDATE_RECURRING_TEMPLATE'; payload: RecurringTemplate }
   | { type: 'DELETE_RECURRING_TEMPLATE'; payload: string }
-  | { type: 'MATERIALIZE_RECURRING'; payload: { expenses: Expense[]; templates: RecurringTemplate[] } };
+  | { type: 'MATERIALIZE_RECURRING'; payload: { expenses: Expense[]; templates: RecurringTemplate[] } }
+  | { type: 'SET_BUDGET_RULE'; payload: BudgetRule };
 
 export interface ValidationResult {
   isValid: boolean;
@@ -165,4 +166,18 @@ export interface AppError {
   componentStack?: string;
   timestamp: string;
   context?: string; // e.g., 'dashboard', 'add-expense'
+}
+
+export interface BudgetRule {
+  needs: number; // integer percentage, e.g., 50
+  wants: number; // e.g., 30
+  savings: number; // e.g., 20
+}
+
+export type BudgetPresetKey = '50-30-20' | '70-20-10' | '60-20-20' | 'custom';
+
+export interface BudgetPreset {
+  key: BudgetPresetKey;
+  label: string;
+  rule: BudgetRule;
 }

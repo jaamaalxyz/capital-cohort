@@ -1,5 +1,4 @@
-import { Expense, BudgetSummary, CategoryBudget, Category } from '../types';
-import { CATEGORY_CONFIG } from '../constants/theme';
+import { Expense, BudgetSummary, CategoryBudget, Category, BudgetRule } from '../types';
 
 export function getExpensesForMonth(expenses: Expense[], month: string): Expense[] {
   return expenses.filter((e) => e.date.startsWith(month));
@@ -8,10 +7,11 @@ export function getExpensesForMonth(expenses: Expense[], month: string): Expense
 export function calculateCategoryBudget(
   income: number,
   expenses: Expense[],
-  category: Category
+  category: Category,
+  rule: BudgetRule
 ): CategoryBudget {
-  const config = CATEGORY_CONFIG[category];
-  const allocated = Math.round(income * config.percentage);
+  const percentage = rule[category] / 100;
+  const allocated = Math.round(income * percentage);
   const spent = expenses
     .filter((e) => e.category === category)
     .reduce((sum, e) => sum + e.amount, 0);
@@ -27,11 +27,12 @@ export function calculateCategoryBudget(
 
 export function calculateBudgetSummary(
   income: number,
-  expenses: Expense[]
+  expenses: Expense[],
+  rule: BudgetRule
 ): BudgetSummary {
-  const needs = calculateCategoryBudget(income, expenses, 'needs');
-  const wants = calculateCategoryBudget(income, expenses, 'wants');
-  const savings = calculateCategoryBudget(income, expenses, 'savings');
+  const needs = calculateCategoryBudget(income, expenses, 'needs', rule);
+  const wants = calculateCategoryBudget(income, expenses, 'wants', rule);
+  const savings = calculateCategoryBudget(income, expenses, 'savings', rule);
 
   const totalSpent = needs.spent + wants.spent + savings.spent;
 

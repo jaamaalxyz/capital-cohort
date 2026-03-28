@@ -76,11 +76,12 @@ export const DonutChart: React.FC<Props> = ({
     );
   }
 
-  const segments: { category: Category; amount: number }[] = [
+  const allSegments: { category: Category; amount: number }[] = [
     { category: 'needs', amount: breakdown.needs },
     { category: 'wants', amount: breakdown.wants },
     { category: 'savings', amount: breakdown.savings },
-  ].filter((s) => s.amount > 0);
+  ];
+  const segments = allSegments.filter((s) => s.amount > 0);
 
   const cx = size / 2;
   const cy = size / 2;

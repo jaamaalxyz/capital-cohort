@@ -100,16 +100,19 @@ function DashboardContent() {
         <BudgetCard
           category="needs"
           budget={summary.needs}
+          rulePercentage={state.budgetRule.needs}
           currencySymbol={currencySymbol}
         />
         <BudgetCard
           category="wants"
           budget={summary.wants}
+          rulePercentage={state.budgetRule.wants}
           currencySymbol={currencySymbol}
         />
         <BudgetCard
           category="savings"
           budget={summary.savings}
+          rulePercentage={state.budgetRule.savings}
           currencySymbol={currencySymbol}
         />
 

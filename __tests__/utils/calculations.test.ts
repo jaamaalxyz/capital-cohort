@@ -48,23 +48,36 @@ describe('getExpensesForMonth', () => {
   });
 });
 
+const DEFAULT_RULE = { needs: 50, wants: 30, savings: 20 };
+
 // ---------------------------------------------------------------------------
 // calculateCategoryBudget
 // ---------------------------------------------------------------------------
 describe('calculateCategoryBudget', () => {
   it('calculates correct allocated amount for needs (50%)', () => {
-    const result = calculateCategoryBudget(200000, [], 'needs');
+    const result = calculateCategoryBudget(200000, [], 'needs', DEFAULT_RULE);
     expect(result.allocated).toBe(100000);
   });
 
   it('calculates correct allocated amount for wants (30%)', () => {
-    const result = calculateCategoryBudget(200000, [], 'wants');
+    const result = calculateCategoryBudget(200000, [], 'wants', DEFAULT_RULE);
     expect(result.allocated).toBe(60000);
   });
 
   it('calculates correct allocated amount for savings (20%)', () => {
-    const result = calculateCategoryBudget(200000, [], 'savings');
+    const result = calculateCategoryBudget(200000, [], 'savings', DEFAULT_RULE);
     expect(result.allocated).toBe(40000);
+  });
+
+  it('calculates correct allocated amount for a custom rule (70/20/10)', () => {
+    const customRule = { needs: 70, wants: 20, savings: 10 };
+    const needs = calculateCategoryBudget(100000, [], 'needs', customRule);
+    const wants = calculateCategoryBudget(100000, [], 'wants', customRule);
+    const savings = calculateCategoryBudget(100000, [], 'savings', customRule);
+
+    expect(needs.allocated).toBe(70000);
+    expect(wants.allocated).toBe(20000);
+    expect(savings.allocated).toBe(10000);
   });
 
   it('correctly sums spent for the given category', () => {
@@ -73,37 +86,37 @@ describe('calculateCategoryBudget', () => {
       makeExpense({ amount: 20000, category: 'needs' }),
       makeExpense({ amount: 5000, category: 'wants' }), // should not count
     ];
-    const result = calculateCategoryBudget(200000, expenses, 'needs');
+    const result = calculateCategoryBudget(200000, expenses, 'needs', DEFAULT_RULE);
     expect(result.spent).toBe(30000);
   });
 
   it('calculates remaining correctly when under budget', () => {
     const expenses = [makeExpense({ amount: 30000, category: 'needs' })];
-    const result = calculateCategoryBudget(200000, expenses, 'needs');
+    const result = calculateCategoryBudget(200000, expenses, 'needs', DEFAULT_RULE);
     expect(result.remaining).toBe(70000);
   });
 
   it('flags over-budget correctly', () => {
     const expenses = [makeExpense({ amount: 150000, category: 'needs' })];
-    const result = calculateCategoryBudget(200000, expenses, 'needs');
+    const result = calculateCategoryBudget(200000, expenses, 'needs', DEFAULT_RULE);
     expect(result.isOverBudget).toBe(true);
     expect(result.remaining).toBe(-50000);
   });
 
   it('calculates percentage of budget used', () => {
     const expenses = [makeExpense({ amount: 50000, category: 'needs' })];
-    const result = calculateCategoryBudget(200000, expenses, 'needs');
+    const result = calculateCategoryBudget(200000, expenses, 'needs', DEFAULT_RULE);
     // 50000 / 100000 = 50%
     expect(result.percentage).toBeCloseTo(50);
   });
 
   it('percentage is 0 when income is 0', () => {
-    const result = calculateCategoryBudget(0, [], 'needs');
+    const result = calculateCategoryBudget(0, [], 'needs', DEFAULT_RULE);
     expect(result.percentage).toBe(0);
   });
 
   it('returns 0 spent and full allocated when no expenses', () => {
-    const result = calculateCategoryBudget(100000, [], 'savings');
+    const result = calculateCategoryBudget(100000, [], 'savings', DEFAULT_RULE);
     expect(result.spent).toBe(0);
     expect(result.allocated).toBe(20000);
     expect(result.isOverBudget).toBe(false);
@@ -120,30 +133,30 @@ describe('calculateBudgetSummary', () => {
       makeExpense({ amount: 3000, category: 'wants' }),
       makeExpense({ amount: 2000, category: 'savings' }),
     ];
-    const summary = calculateBudgetSummary(100000, expenses);
+    const summary = calculateBudgetSummary(100000, expenses, DEFAULT_RULE);
     expect(summary.totalSpent).toBe(10000);
     expect(summary.totalRemaining).toBe(90000);
   });
 
   it('totalRemaining is negative when overspent', () => {
     const expenses = [makeExpense({ amount: 150000, category: 'needs' })];
-    const summary = calculateBudgetSummary(100000, expenses);
+    const summary = calculateBudgetSummary(100000, expenses, DEFAULT_RULE);
     expect(summary.totalRemaining).toBe(-50000);
   });
 
   it('returns income in summary', () => {
-    const summary = calculateBudgetSummary(200000, []);
+    const summary = calculateBudgetSummary(200000, [], DEFAULT_RULE);
     expect(summary.income).toBe(200000);
   });
 
   it('returns 0 totalSpent and full income as remaining when no expenses', () => {
-    const summary = calculateBudgetSummary(100000, []);
+    const summary = calculateBudgetSummary(100000, [], DEFAULT_RULE);
     expect(summary.totalSpent).toBe(0);
     expect(summary.totalRemaining).toBe(100000);
   });
 
   it('summary includes needs, wants, savings breakdowns', () => {
-    const summary = calculateBudgetSummary(100000, []);
+    const summary = calculateBudgetSummary(100000, [], DEFAULT_RULE);
     expect(summary).toHaveProperty('needs');
     expect(summary).toHaveProperty('wants');
     expect(summary).toHaveProperty('savings');

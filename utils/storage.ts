@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/theme';
-import { Expense, RecurringTemplate, ThemeMode } from '../types';
+import { Expense, RecurringTemplate, ThemeMode, BudgetRule } from '../types';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
+import { DEFAULT_BUDGET_RULE } from '../constants/budgetPresets';
 import { logError } from './errorLogger';
 
 export async function saveIncome(income: number): Promise<void> {
@@ -163,6 +164,37 @@ export async function loadTheme(): Promise<ThemeMode | null> {
   }
 }
 
+export async function saveBudgetRule(rule: BudgetRule): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.BUDGET_RULE, JSON.stringify(rule));
+  } catch (error) {
+    logError(error as Error, undefined, 'storage.saveBudgetRule');
+  }
+}
+
+export async function loadBudgetRule(): Promise<BudgetRule> {
+  try {
+    const value = await AsyncStorage.getItem(STORAGE_KEYS.BUDGET_RULE);
+    if (!value) return DEFAULT_BUDGET_RULE;
+    const parsed = JSON.parse(value);
+    
+    // Simple validation: check if it has the required keys and they are numbers
+    if (
+      typeof parsed?.needs !== 'number' || 
+      typeof parsed?.wants !== 'number' || 
+      typeof parsed?.savings !== 'number'
+    ) {
+      logError(new Error('Budget rule storage corrupted'), undefined, 'storage.loadBudgetRule');
+      return DEFAULT_BUDGET_RULE;
+    }
+    
+    return parsed as BudgetRule;
+  } catch (error) {
+    logError(error as Error, undefined, 'storage.loadBudgetRule');
+    return DEFAULT_BUDGET_RULE;
+  }
+}
+
 export async function clearAllData(): Promise<void> {
   try {
     await AsyncStorage.multiRemove([
@@ -175,6 +207,7 @@ export async function clearAllData(): Promise<void> {
       STORAGE_KEYS.LANGUAGE,
       STORAGE_KEYS.THEME,
       STORAGE_KEYS.RECURRING_TEMPLATES,
+      STORAGE_KEYS.BUDGET_RULE,
     ]);
   } catch (error) {
     logError(error as Error, undefined, 'storage.clearAllData');

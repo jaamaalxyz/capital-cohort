@@ -10,6 +10,7 @@ import { formatCurrency } from '../utils/formatters';
 interface BudgetCardProps {
   category: Category;
   budget: CategoryBudget;
+  rulePercentage: number;
   currencySymbol?: string;
   onPress?: () => void;
 }
@@ -17,6 +18,7 @@ interface BudgetCardProps {
 export function BudgetCard({
   category,
   budget,
+  rulePercentage,
   currencySymbol = '$',
   onPress,
 }: BudgetCardProps) {
@@ -36,7 +38,7 @@ export function BudgetCard({
         <Text style={styles.icon}>{config.icon}</Text>
         <Text style={styles.label}>
           {t(`categories.${category}`).toUpperCase()} (
-          {Math.round(config.percentage * 100)}%)
+          {rulePercentage}%)
         </Text>
       </View>
 

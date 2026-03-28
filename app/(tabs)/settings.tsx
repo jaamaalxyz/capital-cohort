@@ -28,7 +28,12 @@ import { useTheme } from '../../context/ThemeContext';
 import { ThemePicker } from '../../components/ThemePicker';
 import { formatCurrency } from '../../utils/formatters';
 import { CURRENCIES, getCurrencyByCode } from '../../constants/currencies';
-import { Currency, LanguageCode } from '../../types';
+import {
+  Currency,
+  LanguageCode,
+  BudgetRule,
+  BudgetPresetKey,
+} from '../../types';
 import {
   supportedLanguages,
   changeLanguage,
@@ -40,17 +45,34 @@ import {
   buildExportFilename,
 } from '../../utils/exportData';
 import { parseImportJSON } from '../../utils/importData';
-
+import { BudgetRulePresets } from '../../components/BudgetRulePresets';
+import {
+  detectPreset,
+  validateBudgetRule,
+  adjustThirdCategory,
+} from '../../utils/budgetRules';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 function SettingsContent() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { state, setIncome, setCurrency, setLocation, resetAll, loadData } =
+  const { state, setIncome, setCurrency, setLocation, resetAll, loadData, setBudgetRule } =
     useBudget();
   const { colors, isDark } = useTheme();
   const [incomeValue, setIncomeValue] = useState(state.monthlyIncome);
   const [isLocating, setIsLocating] = useState(false);
+  
+  // Custom Budget Rules State
+  const [tempRule, setTempRule] = useState<BudgetRule>(state.budgetRule);
+  const [selectedPresetKey, setSelectedPresetKey] = useState<BudgetPresetKey>(
+    detectPreset(state.budgetRule)
+  );
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  useEffect(() => {
+    setTempRule(state.budgetRule);
+    setSelectedPresetKey(detectPreset(state.budgetRule));
+  }, [state.budgetRule]);
   const [currencyPickerVisible, setCurrencyPickerVisible] = useState(false);
   const [currencySearch, setCurrencySearch] = useState('');
   const [languagePickerVisible, setLanguagePickerVisible] = useState(false);
@@ -231,6 +253,45 @@ function SettingsContent() {
     }
   };
 
+  const handlePresetSelect = (rule: BudgetRule) => {
+    setTempRule(rule);
+    setSelectedPresetKey(detectPreset(rule));
+  };
+
+  const handleRuleChange = (key: keyof BudgetRule, value: number) => {
+    // Basic clamping to 0-100
+    const clamped = Math.min(Math.max(value, 0), 100);
+    const updated = { ...tempRule, [key]: clamped };
+    
+    // Auto-adjust another category to keep it at 100?
+    // For manual input, we'll let them adjust and check validation before save.
+    // But for a better UX, let's use adjustThirdCategory if they change one.
+    const locked: keyof BudgetRule = key === 'savings' ? 'needs' : 'savings';
+    const balanced = adjustThirdCategory(updated, locked);
+    
+    setTempRule(balanced);
+    setSelectedPresetKey(detectPreset(balanced));
+  };
+
+  const handleSaveBudgetRule = async () => {
+    const validation = validateBudgetRule(tempRule);
+    if (!validation.isValid) {
+      Alert.alert('Invalid Budget Rule', validation.error);
+      return;
+    }
+
+    setSaveLoading(true);
+    try {
+      setBudgetRule(tempRule);
+      // Auto-saved by Effect in Context
+      Alert.alert('Success', 'Budget rules updated successfully.');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save budget rules.');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
   const openCurrencyPicker = () => {
     setCurrencySearch('');
     setCurrencyPickerVisible(true);
@@ -252,13 +313,13 @@ function SettingsContent() {
   };
 
   const needsAllocation = Math.round(
-    incomeValue * CATEGORY_CONFIG.needs.percentage,
+    incomeValue * (tempRule.needs / 100),
   );
   const wantsAllocation = Math.round(
-    incomeValue * CATEGORY_CONFIG.wants.percentage,
+    incomeValue * (tempRule.wants / 100),
   );
   const savingsAllocation = Math.round(
-    incomeValue * CATEGORY_CONFIG.savings.percentage,
+    incomeValue * (tempRule.savings / 100),
   );
 
   const formatAmount = (cents: number) => formatCurrency(cents, currencySymbol);
@@ -536,36 +597,102 @@ function SettingsContent() {
             </Pressable>
           </View>
 
-          {/* Budget Rule Info */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('settings.rule503020')}</Text>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoText}>
-                {t('settings.ruleDescription')}
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>
+                {t('settings.budgetRules.title')}
               </Text>
-              <View style={styles.ruleItem}>
-                <Text style={styles.ruleEmoji}>🏠</Text>
-                <Text style={styles.ruleText}>
-                  <Text style={styles.ruleBold}>{t('settings.needsRule')}</Text>{' '}
-                  {t('settings.needsRuleDesc')}
-                </Text>
+            </View>
+            
+            <View style={styles.sectionContent}>
+              <Text style={[styles.label, { marginBottom: SPACING.xs }]}>
+                {t('settings.budgetRules.selectPreset')}
+              </Text>
+              <BudgetRulePresets 
+                selectedPresetKey={selectedPresetKey}
+                onSelect={handlePresetSelect}
+              />
+
+              <View style={styles.ruleAdjusterContainer}>
+                {/* Needs Adjuster */}
+                <View style={styles.adjusterRow}>
+                  <Text style={styles.adjusterLabel}>🏠 {t('settings.needsRule')}</Text>
+                  <View style={styles.stepper}>
+                    <Pressable 
+                      style={styles.stepBtn} 
+                      onPress={() => handleRuleChange('needs', tempRule.needs - 5)}
+                    >
+                      <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>-</Text>
+                    </Pressable>
+                    <Text style={styles.ruleValueText} testID="slider-value-needs">{`${tempRule.needs}%`}</Text>
+                    <Pressable 
+                      style={styles.stepBtn} 
+                      onPress={() => handleRuleChange('needs', tempRule.needs + 5)}
+                    >
+                      <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>+</Text>
+                    </Pressable>
+                  </View>
+                </View>
+
+                {/* Wants Adjuster */}
+                <View style={styles.adjusterRow}>
+                  <Text style={styles.adjusterLabel}>🎮 {t('settings.wantsRule')}</Text>
+                  <View style={styles.stepper}>
+                    <Pressable 
+                      style={styles.stepBtn} 
+                      onPress={() => handleRuleChange('wants', tempRule.wants - 5)}
+                    >
+                      <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>-</Text>
+                    </Pressable>
+                    <Text style={styles.ruleValueText} testID="slider-value-wants">{`${tempRule.wants}%`}</Text>
+                    <Pressable 
+                      style={styles.stepBtn} 
+                      onPress={() => handleRuleChange('wants', tempRule.wants + 5)}
+                    >
+                      <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>+</Text>
+                    </Pressable>
+                  </View>
+                </View>
+
+                {/* Savings Adjuster */}
+                <View style={styles.adjusterRow}>
+                  <Text style={styles.adjusterLabel}>💰 {t('settings.savingsRule')}</Text>
+                  <View style={styles.stepper}>
+                    <Pressable 
+                      style={styles.stepBtn} 
+                      onPress={() => handleRuleChange('savings', tempRule.savings - 5)}
+                    >
+                      <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>-</Text>
+                    </Pressable>
+                    <Text style={styles.ruleValueText} testID="slider-value-savings">{`${tempRule.savings}%`}</Text>
+                    <Pressable 
+                      style={styles.stepBtn} 
+                      onPress={() => handleRuleChange('savings', tempRule.savings + 5)}
+                    >
+                      <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>+</Text>
+                    </Pressable>
+                  </View>
+                </View>
               </View>
-              <View style={styles.ruleItem}>
-                <Text style={styles.ruleEmoji}>🎮</Text>
-                <Text style={styles.ruleText}>
-                  <Text style={styles.ruleBold}>{t('settings.wantsRule')}</Text>{' '}
-                  {t('settings.wantsRuleDesc')}
-                </Text>
-              </View>
-              <View style={styles.ruleItem}>
-                <Text style={styles.ruleEmoji}>💰</Text>
-                <Text style={styles.ruleText}>
-                  <Text style={styles.ruleBold}>
-                    {t('settings.savingsRule')}
-                  </Text>{' '}
-                  {t('settings.savingsRuleDesc')}
-                </Text>
-              </View>
+
+              <Pressable
+                testID="save-budget-rule-btn"
+                style={({ pressed }) => [
+                  styles.updateButton,
+                  pressed && styles.updateButtonPressed,
+                  saveLoading && styles.disabled,
+                ]}
+                onPress={handleSaveBudgetRule}
+                disabled={saveLoading}
+              >
+                {saveLoading ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={styles.updateButtonText}>
+                    {t('settings.budgetRules.update')}
+                  </Text>
+                )}
+              </Pressable>
             </View>
           </View>
 
@@ -1069,6 +1196,70 @@ const createStyles = (colors: any) =>
     emptyText: {
       fontSize: FONT_SIZE.body,
       color: colors.textSecondary,
+    },
+    // Budget Rule Adjuster
+    sectionHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: SPACING.sm,
+    },
+    ruleAdjusterContainer: {
+      marginTop: SPACING.md,
+      paddingTop: SPACING.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    adjusterRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: SPACING.md,
+    },
+    adjusterLabel: {
+      fontSize: FONT_SIZE.body,
+      color: colors.textPrimary,
+      fontWeight: '500',
+    },
+    stepper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    stepBtn: {
+      width: 36,
+      height: 36,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    stepBtnText: {
+      fontSize: 20,
+      fontWeight: '600',
+    },
+    ruleValueText: {
+      width: 50,
+      textAlign: 'center',
+      fontSize: FONT_SIZE.body,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    updateButton: {
+      backgroundColor: colors.needs,
+      borderRadius: 12,
+      padding: SPACING.md,
+      alignItems: 'center',
+      marginTop: SPACING.md,
+    },
+    updateButtonPressed: {
+      opacity: 0.8,
+    },
+    updateButtonText: {
+      fontSize: FONT_SIZE.body,
+      fontWeight: '700',
+      color: '#FFFFFF',
     },
   });
 export default function SettingsScreen() {

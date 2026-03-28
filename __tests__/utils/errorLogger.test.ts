@@ -79,7 +79,7 @@ describe('logError', () => {
 
     const wasContextFound = consoleSpy.mock.calls.some((call) =>
       call.some(
-        (arg) => typeof arg === 'string' && arg.includes('expenses-screen'),
+        (arg: unknown) => typeof arg === 'string' && arg.includes('expenses-screen'),
       ),
     );
     expect(wasContextFound).toBe(true);

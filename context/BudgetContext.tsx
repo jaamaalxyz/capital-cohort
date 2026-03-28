@@ -13,6 +13,7 @@ import {
   BudgetSummary,
   LocationPreference,
   RecurringTemplate,
+  BudgetRule,
 } from '../types';
 import { getCurrentMonth } from '../utils/formatters';
 import {
@@ -29,9 +30,12 @@ import {
   loadOnboardingCompleted,
   saveRecurringTemplates,
   loadRecurringTemplates,
+  saveBudgetRule,
+  loadBudgetRule,
 } from '../utils/storage';
 import { materializeAllForMonth } from '../utils/recurringExpenses';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
+import { DEFAULT_BUDGET_RULE } from '../constants/budgetPresets';
 import {
   calculateBudgetSummary,
   getExpensesForMonth,
@@ -46,6 +50,7 @@ const initialState: BudgetState = {
   location: undefined,
   onboardingCompleted: false,
   recurringTemplates: [],
+  budgetRule: DEFAULT_BUDGET_RULE,
 };
 
 function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
@@ -91,11 +96,14 @@ function budgetReducer(state: BudgetState, action: BudgetAction): BudgetState {
         expenses: [...state.expenses, ...action.payload.expenses],
         recurringTemplates: action.payload.templates,
       };
+    case 'SET_BUDGET_RULE':
+      return { ...state, budgetRule: action.payload };
     case 'RESET_ALL':
       return {
         ...initialState,
         isLoading: false,
         currentMonth: getCurrentMonth(),
+        budgetRule: DEFAULT_BUDGET_RULE,
       };
     default:
       return state;
@@ -118,6 +126,7 @@ interface BudgetContextType {
   addRecurringTemplate: (template: RecurringTemplate) => void;
   updateRecurringTemplate: (template: RecurringTemplate) => void;
   deleteRecurringTemplate: (id: string) => void;
+  setBudgetRule: (rule: BudgetRule) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
@@ -129,7 +138,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function loadData() {
       try {
-        const [income, expenses, currency, location, onboardingCompleted, recurringTemplates] =
+        const [income, expenses, currency, location, onboardingCompleted, recurringTemplates, budgetRule] =
           await Promise.all([
             loadIncome(),
             loadExpenses(),
@@ -137,6 +146,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
             loadLocation(),
             loadOnboardingCompleted(),
             loadRecurringTemplates(),
+            loadBudgetRule(),
           ]);
         dispatch({
           type: 'LOAD_DATA',
@@ -147,6 +157,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
             location,
             onboardingCompleted,
             recurringTemplates,
+            budgetRule,
           },
         });
       } catch (error) {
@@ -199,6 +210,13 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }
   }, [state.recurringTemplates, state.isLoading]);
 
+  // Save budget rule when it changes
+  useEffect(() => {
+    if (!state.isLoading) {
+      saveBudgetRule(state.budgetRule);
+    }
+  }, [state.budgetRule, state.isLoading]);
+
   // Materialize recurring templates after load
   useEffect(() => {
     if (!state.isLoading) {
@@ -221,8 +239,8 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   );
 
   const summary = useMemo(
-    () => calculateBudgetSummary(state.monthlyIncome, currentMonthExpenses),
-    [state.monthlyIncome, currentMonthExpenses],
+    () => calculateBudgetSummary(state.monthlyIncome, currentMonthExpenses, state.budgetRule),
+    [state.monthlyIncome, currentMonthExpenses, state.budgetRule],
   );
 
   const setIncome = (income: number) => {
@@ -274,6 +292,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'DELETE_RECURRING_TEMPLATE', payload: id });
   };
 
+  const setBudgetRule = (rule: BudgetRule) => {
+    dispatch({ type: 'SET_BUDGET_RULE', payload: rule });
+  };
+
   return (
     <BudgetContext.Provider
       value={{
@@ -292,6 +314,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addRecurringTemplate,
         updateRecurringTemplate,
         deleteRecurringTemplate,
+        setBudgetRule,
       }}
     >
       {children}

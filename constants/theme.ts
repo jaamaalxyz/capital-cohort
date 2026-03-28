@@ -64,21 +64,18 @@ export const FONT_SIZE = {
 export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
   needs: {
     label: 'Needs',
-    percentage: 0.5,
     color: COLORS.needs,
     icon: '🏠',
     description: 'Essentials: rent, utilities, groceries, insurance',
   },
   wants: {
     label: 'Wants',
-    percentage: 0.3,
     color: COLORS.wants,
     icon: '🎮',
     description: 'Non-essentials: entertainment, dining out, hobbies',
   },
   savings: {
     label: 'Savings',
-    percentage: 0.2,
     color: COLORS.savings,
     icon: '💰',
     description: 'Savings, investments, emergency fund',
@@ -95,4 +92,5 @@ export const STORAGE_KEYS = {
   LANGUAGE: '@budget_language',
   THEME: '@budget_theme',
   RECURRING_TEMPLATES: '@budget_recurring_templates',
+  BUDGET_RULE: '@budget_rule',
 } as const;
