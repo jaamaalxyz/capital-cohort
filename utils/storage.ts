@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/theme';
 import { Expense, RecurringTemplate, ThemeMode } from '../types';
 import { DEFAULT_CURRENCY } from '../constants/currencies';
+import { logError } from './errorLogger';
 
 export async function saveIncome(income: number): Promise<void> {
   try {
@@ -14,9 +15,15 @@ export async function saveIncome(income: number): Promise<void> {
 export async function loadIncome(): Promise<number> {
   try {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.INCOME);
-    return value ? JSON.parse(value) : 0;
+    if (!value) return 0;
+    const parsed = JSON.parse(value);
+    if (typeof parsed !== 'number') {
+      logError(new Error('Income storage corrupted'), undefined, 'storage.loadIncome');
+      return 0;
+    }
+    return parsed;
   } catch (error) {
-    console.error('Error loading income:', error);
+    logError(error as Error, undefined, 'storage.loadIncome');
     return 0;
   }
 }
@@ -32,9 +39,15 @@ export async function saveExpenses(expenses: Expense[]): Promise<void> {
 export async function loadExpenses(): Promise<Expense[]> {
   try {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.EXPENSES);
-    return value ? JSON.parse(value) : [];
+    if (!value) return [];
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      logError(new Error('Expenses storage corrupted'), undefined, 'storage.loadExpenses');
+      return [];
+    }
+    return parsed;
   } catch (error) {
-    console.error('Error loading expenses:', error);
+    logError(error as Error, undefined, 'storage.loadExpenses');
     return [];
   }
 }
@@ -98,9 +111,12 @@ export async function saveOnboardingCompleted(
 export async function loadOnboardingCompleted(): Promise<boolean> {
   try {
     const value = await AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETED);
-    return value ? JSON.parse(value) : false;
+    if (!value) return false;
+    const parsed = JSON.parse(value);
+    if (typeof parsed !== 'boolean') return false;
+    return parsed;
   } catch (error) {
-    console.error('Error loading onboarding status:', error);
+    logError(error as Error, undefined, 'storage.loadOnboarding');
     return false;
   }
 }

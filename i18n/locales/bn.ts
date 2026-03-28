@@ -9,6 +9,7 @@ export default {
     discard: 'বাতিল করুন',
     today: 'আজ',
     of: 'এর মধ্যে',
+    tryAgain: 'আবার চেষ্টা করুন',
   },
 
   // Tab Navigation
@@ -148,5 +149,11 @@ export default {
     title: 'পৃষ্ঠা পাওয়া যায়নি',
     subtitle: 'আপনি যে পৃষ্ঠাটি খুঁজছেন তা বিদ্যমান নেই।',
     goHome: 'হোমে ফিরে যান',
+  },
+
+  // Error Messages
+  errors: {
+    somethingWentWrong: 'কিছু ভুল হয়েছে',
+    unexpectedError: 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। আপনার ডেটা নিরাপদ আছে।',
   },
 } as const;

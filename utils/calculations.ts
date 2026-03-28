@@ -45,14 +45,17 @@ export function calculateBudgetSummary(
   };
 }
 
-export function groupExpensesByDate(expenses: Expense[]): Map<string, Expense[]> {
+export function groupExpensesByDate(
+  expenses: Expense[],
+  sortByDate = true
+): Map<string, Expense[]> {
   const grouped = new Map<string, Expense[]>();
 
-  const sorted = [...expenses].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const target = sortByDate
+    ? [...expenses].sort((a, b) => b.date.localeCompare(a.date))
+    : expenses;
 
-  sorted.forEach((expense) => {
+  target.forEach((expense) => {
     const existing = grouped.get(expense.date) || [];
     grouped.set(expense.date, [...existing, expense]);
   });

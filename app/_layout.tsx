@@ -9,6 +9,7 @@ import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { LIGHT_COLORS } from '../constants/theme';
 import i18n, { initI18n } from '../i18n';
 import '../i18n/types';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useSegments, useRouter } from 'expo-router';
 
 function AppContent() {
@@ -47,7 +48,7 @@ function AppContent() {
   }
 
   return (
-    <>
+    <ErrorBoundary context="root">
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -73,7 +74,7 @@ function AppContent() {
           options={{ presentation: 'modal', title: 'Add Recurring', headerShown: true }}
         />
       </Stack>
-    </>
+    </ErrorBoundary>
   );
 }
 

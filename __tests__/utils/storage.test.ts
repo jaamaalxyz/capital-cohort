@@ -333,3 +333,23 @@ describe('clearAllData', () => {
     expect(removedKeys).toContain(STORAGE_KEYS.THEME);
   });
 });
+
+describe('Storage Resilience', () => {
+  it('loadIncome returns 0 when stored value is not a number', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(JSON.stringify({ bad: 'data' }));
+    const result = await loadIncome();
+    expect(result).toBe(0);
+  });
+
+  it('loadExpenses returns [] when stored value is not an array', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(JSON.stringify({ not: 'an-array' }));
+    const result = await loadExpenses();
+    expect(result).toEqual([]);
+  });
+
+  it('loadExpenses returns [] when stored value is corrupt JSON', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('corrupt-json-!@#');
+    const result = await loadExpenses();
+    expect(result).toEqual([]);
+  });
+});

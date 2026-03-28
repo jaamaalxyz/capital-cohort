@@ -56,6 +56,7 @@ export function SortPicker({
                     onSelect(option.value);
                     onClose();
                   }}
+                  testID={`sort-option-${option.value}`}
                 >
                   <Text
                     style={[

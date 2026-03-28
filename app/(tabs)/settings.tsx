@@ -41,7 +41,9 @@ import {
 } from '../../utils/exportData';
 import { parseImportJSON } from '../../utils/importData';
 
-export default function SettingsScreen() {
+import { ErrorBoundary } from '../../components/ErrorBoundary';
+
+function SettingsContent() {
   const { t } = useTranslation();
   const router = useRouter();
   const { state, setIncome, setCurrency, setLocation, resetAll, loadData } =
@@ -608,6 +610,28 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
 
+          {/* Diagnostics (Dev Only) */}
+          {__DEV__ && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>DIAGNOSTICS</Text>
+              <View style={styles.infoCard}>
+                <Text style={styles.infoText}>
+                  Test the reliability of the application's Error Boundaries.
+                </Text>
+                <Pressable
+                  style={styles.resetButton}
+                  onPress={() => {
+                    throw new Error('User-triggered crash (Plan 07 Test)');
+                  }}
+                >
+                  <Text style={styles.resetButtonText}>
+                    Simulate UI Crash
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
           {/* Danger Zone */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, styles.dangerTitle]}>
@@ -1047,3 +1071,10 @@ const createStyles = (colors: any) =>
       color: colors.textSecondary,
     },
   });
+export default function SettingsScreen() {
+  return (
+    <ErrorBoundary context="settings">
+      <SettingsContent />
+    </ErrorBoundary>
+  );
+}

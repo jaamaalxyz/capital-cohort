@@ -9,6 +9,7 @@ export default {
     discard: 'Discard',
     today: 'Today',
     of: 'of',
+    tryAgain: 'Try Again',
   },
 
   // Tab Navigation
@@ -171,5 +172,11 @@ export default {
     activeLabel: 'Active',
     inactiveLabel: 'Inactive',
     saveTemplate: 'Save Template',
+  },
+
+  // Error Messages
+  errors: {
+    somethingWentWrong: 'Something went wrong',
+    unexpectedError: 'An unexpected error occurred. Your data is safe.',
   },
 } as const;

@@ -23,7 +23,9 @@ import {
 } from '../../utils/formatters';
 import { getCurrencyByCode } from '../../constants/currencies';
 
-export default function DashboardScreen() {
+import { ErrorBoundary } from '../../components/ErrorBoundary';
+
+function DashboardContent() {
   const router = useRouter();
   const { t } = useTranslation();
   const { state, summary, setMonth } = useBudget();
@@ -260,3 +262,10 @@ const createStyles = (colors: any) =>
       lineHeight: 34,
     },
   });
+export default function DashboardScreen() {
+  return (
+    <ErrorBoundary context="dashboard">
+      <DashboardContent />
+    </ErrorBoundary>
+  );
+}

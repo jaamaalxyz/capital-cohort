@@ -159,3 +159,10 @@ export const DEFAULT_EXPENSE_FILTERS: ExpenseFilters = {
   dateTo: undefined,
   sortOrder: 'date_desc',
 };
+
+export interface AppError {
+  message: string;
+  componentStack?: string;
+  timestamp: string;
+  context?: string; // e.g., 'dashboard', 'add-expense'
+}

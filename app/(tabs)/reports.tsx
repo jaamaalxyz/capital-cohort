@@ -17,7 +17,9 @@ import { SpendingInsightCard } from '../../components/charts/SpendingInsightCard
 
 const MONTHS_TO_SHOW = 6;
 
-export default function ReportsScreen() {
+import { ErrorBoundary } from '../../components/ErrorBoundary';
+
+function ReportsContent() {
   const { state } = useBudget();
   const { colors } = useTheme();
 
@@ -179,3 +181,10 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 });
+export default function ReportsScreen() {
+  return (
+    <ErrorBoundary context="reports">
+      <ReportsContent />
+    </ErrorBoundary>
+  );
+}

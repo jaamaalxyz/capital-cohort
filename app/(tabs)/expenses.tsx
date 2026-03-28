@@ -24,7 +24,9 @@ import { SearchBar } from '../../components/SearchBar';
 import { FilterChip } from '../../components/FilterChip';
 import { SortPicker } from '../../components/SortPicker';
 
-export default function ExpensesScreen() {
+import { ErrorBoundary } from '../../components/ErrorBoundary';
+
+function ExpensesContent() {
   const { t } = useTranslation();
   const { state, currentMonthExpenses, deleteExpense } = useBudget();
   const { colors } = useTheme();
@@ -47,7 +49,7 @@ export default function ExpensesScreen() {
   }, [currentMonthExpenses, filters]);
 
   const groupedExpenses = useMemo(
-    () => groupExpensesByDate(filteredExpenses),
+    () => groupExpensesByDate(filteredExpenses, false),
     [filteredExpenses],
   );
 
@@ -100,6 +102,7 @@ export default function ExpensesScreen() {
           style={styles.sortBtn}
           onPress={() => setIsSortVisible(true)}
           hitSlop={8}
+          testID="sort-btn"
         >
           <Text style={styles.sortIcon}>↕️</Text>
           {filters.sortOrder !== 'date_desc' && (
@@ -126,7 +129,11 @@ export default function ExpensesScreen() {
             />
           ))}
           {activeFilterCount > 0 && (
-            <TouchableOpacity style={styles.clearAll} onPress={clearFilters}>
+            <TouchableOpacity 
+              style={styles.clearAll} 
+              onPress={clearFilters}
+              testID="clear-filters-btn"
+            >
               <Text style={styles.clearAllText}>
                 {t('expenses.clearFilters') || 'Clear'} ({activeFilterCount})
               </Text>
@@ -297,3 +304,10 @@ const createStyles = (colors: any) =>
       fontSize: 16,
     },
   });
+export default function ExpensesScreen() {
+  return (
+    <ErrorBoundary context="expenses">
+      <ExpensesContent />
+    </ErrorBoundary>
+  );
+}
