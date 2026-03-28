@@ -137,3 +137,25 @@ export interface ExportPayload {
 }
 
 export type ExportFormat = 'csv' | 'json';
+
+export type SortOrder =
+  | 'date_desc'    // newest first (default)
+  | 'date_asc'     // oldest first
+  | 'amount_desc'  // highest first
+  | 'amount_asc';  // lowest first
+
+export interface ExpenseFilters {
+  query: string;             // free-text search
+  categories: Category[];    // empty = show all
+  dateFrom?: string;         // YYYY-MM-DD
+  dateTo?: string;           // YYYY-MM-DD
+  sortOrder: SortOrder;
+}
+
+export const DEFAULT_EXPENSE_FILTERS: ExpenseFilters = {
+  query: '',
+  categories: [],
+  dateFrom: undefined,
+  dateTo: undefined,
+  sortOrder: 'date_desc',
+};

@@ -45,9 +45,9 @@ describe('Expenses screen — empty state', () => {
     expect(await findByText('expenses.noExpenses')).toBeTruthy();
   });
 
-  it('shows filter pills', async () => {
-    const { findByText } = renderExpenses();
-    expect(await findByText('expenses.filterAll')).toBeTruthy();
+  it('shows search bar', async () => {
+    const { findByPlaceholderText } = renderExpenses();
+    expect(await findByPlaceholderText('expenses.searchPlaceholder')).toBeTruthy();
   });
 
   it('shows all category filter options', async () => {
@@ -81,11 +81,5 @@ describe('Expenses screen — filter interaction', () => {
     const { findByText } = renderExpenses();
     const needsPill = await findByText('categories.needs');
     expect(() => fireEvent.press(needsPill)).not.toThrow();
-  });
-
-  it('tapping "all" filter does not crash', async () => {
-    const { findByText } = renderExpenses();
-    const allPill = await findByText('expenses.filterAll');
-    expect(() => fireEvent.press(allPill)).not.toThrow();
   });
 });

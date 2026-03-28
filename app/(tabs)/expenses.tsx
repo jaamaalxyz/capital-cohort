@@ -1,47 +1,50 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  Pressable,
   Alert,
+  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useBudget } from '../../context/BudgetContext';
 import { ExpenseItem } from '../../components/ExpenseItem';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Category, Expense } from '../../types';
-import { SPACING, FONT_SIZE } from '../../constants/theme';
+import { SPACING, FONT_SIZE, CATEGORY_CONFIG } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { formatDate, formatMonth } from '../../utils/formatters';
 import { groupExpensesByDate } from '../../utils/calculations';
 import { getCurrencyByCode } from '../../constants/currencies';
-
-type Filter = 'all' | Category;
+import { useExpenseFilters } from '../../hooks/useExpenseFilters';
+import { applyFilters } from '../../utils/filterExpenses';
+import { SearchBar } from '../../components/SearchBar';
+import { FilterChip } from '../../components/FilterChip';
+import { SortPicker } from '../../components/SortPicker';
 
 export default function ExpensesScreen() {
   const { t } = useTranslation();
   const { state, currentMonthExpenses, deleteExpense } = useBudget();
-  const [activeFilter, setActiveFilter] = useState<Filter>('all');
   const { colors } = useTheme();
+  const [isSortVisible, setIsSortVisible] = useState(false);
   const currencySymbol = getCurrencyByCode(state.currency)?.symbol ?? '$';
+
+  const {
+    filters,
+    setQuery,
+    toggleCategory,
+    setSortOrder,
+    clearFilters,
+    activeFilterCount,
+  } = useExpenseFilters();
 
   const styles = createStyles(colors);
 
-  const filters: { key: Filter; label: string }[] = [
-    { key: 'all', label: t('expenses.filterAll') },
-    { key: 'needs', label: t('categories.needs') },
-    { key: 'wants', label: t('categories.wants') },
-    { key: 'savings', label: t('categories.savings') },
-  ];
-
   const filteredExpenses = useMemo(() => {
-    if (activeFilter === 'all') {
-      return currentMonthExpenses;
-    }
-    return currentMonthExpenses.filter((e) => e.category === activeFilter);
-  }, [currentMonthExpenses, activeFilter]);
+    return applyFilters(currentMonthExpenses, filters);
+  }, [currentMonthExpenses, filters]);
 
   const groupedExpenses = useMemo(
     () => groupExpensesByDate(filteredExpenses),
@@ -84,50 +87,78 @@ export default function ExpensesScreen() {
         <Text style={styles.subtitle}>{formatMonth(state.currentMonth)}</Text>
       </View>
 
-      {/* Filter Pills */}
-      <View style={styles.filterContainer}>
-        {filters.map((filter) => {
-          const isActive = activeFilter === filter.key;
-          const color =
-            filter.key === 'all'
-              ? colors.textPrimary
-              : colors[filter.key as Category];
+      {/* Search & Action Bar */}
+      <View style={styles.actionBar}>
+        <SearchBar
+          value={filters.query}
+          onChangeText={setQuery}
+          onClear={() => setQuery('')}
+          placeholder={t('expenses.searchPlaceholder') || 'Search...'}
+          style={styles.searchBar}
+        />
+        <TouchableOpacity
+          style={styles.sortBtn}
+          onPress={() => setIsSortVisible(true)}
+          hitSlop={8}
+        >
+          <Text style={styles.sortIcon}>↕️</Text>
+          {filters.sortOrder !== 'date_desc' && (
+            <View style={styles.sortBadge} />
+          )}
+        </TouchableOpacity>
+      </View>
 
-          return (
-            <Pressable
-              key={filter.key}
-              style={[
-                styles.filterPill,
-                isActive && { backgroundColor: color, borderColor: color },
-              ]}
-              onPress={() => setActiveFilter(filter.key)}
-            >
-              <Text
-                style={[
-                  styles.filterText,
-                  isActive && {
-                    color:
-                      filter.key === 'all'
-                        ? colors.background
-                        : '#FFFFFF',
-                  },
-                ]}
-              >
-                {filter.label}
+      {/* Filter Chips */}
+      <View style={styles.filterStrip}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScroll}
+        >
+          {(['needs', 'wants', 'savings'] as Category[]).map((cat) => (
+            <FilterChip
+              key={cat}
+              label={t(`categories.${cat}`)}
+              icon={CATEGORY_CONFIG[cat].icon}
+              active={filters.categories.includes(cat)}
+              onPress={() => toggleCategory(cat)}
+              testID={`filter-chip-${cat}`}
+            />
+          ))}
+          {activeFilterCount > 0 && (
+            <TouchableOpacity style={styles.clearAll} onPress={clearFilters}>
+              <Text style={styles.clearAllText}>
+                {t('expenses.clearFilters') || 'Clear'} ({activeFilterCount})
               </Text>
-            </Pressable>
-          );
-        })}
+            </TouchableOpacity>
+          )}
+        </ScrollView>
       </View>
 
       {/* Expense List */}
-      {filteredExpenses.length === 0 ? (
+      {currentMonthExpenses.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>📝</Text>
           <Text style={styles.emptyTitle}>{t('expenses.noExpenses')}</Text>
           <Text style={styles.emptySubtitle}>
             {t('expenses.addFirstExpense')}
           </Text>
+        </View>
+      ) : filteredExpenses.length === 0 ? (
+        <View testID="search-no-results" style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>🔍</Text>
+          <Text style={styles.emptyTitle}>
+            {t('expenses.noMatches') || 'No matches found'}
+          </Text>
+          <Text style={styles.emptySubtitle}>
+            {t('expenses.adjustFilters') ||
+              'Try adjusting your search or filters.'}
+          </Text>
+          <TouchableOpacity style={styles.clearBtn} onPress={clearFilters}>
+            <Text style={styles.clearBtnText}>
+              {t('expenses.clearFilters') || 'Clear All Filters'}
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
@@ -138,6 +169,13 @@ export default function ExpensesScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      <SortPicker
+        visible={isSortVisible}
+        currentOrder={filters.sortOrder}
+        onSelect={setSortOrder}
+        onClose={() => setIsSortVisible(false)}
+      />
     </ScreenContainer>
   );
 }
@@ -158,25 +196,56 @@ const createStyles = (colors: any) =>
       color: colors.textSecondary,
       marginTop: SPACING.xs,
     },
-    filterContainer: {
+    actionBar: {
       flexDirection: 'row',
-      flexWrap: 'wrap',
+      alignItems: 'center',
       paddingHorizontal: SPACING.lg,
       paddingVertical: SPACING.sm,
       gap: SPACING.sm,
     },
-    filterPill: {
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.sm,
-      borderRadius: 20,
+    searchBar: {
+      flex: 1,
+    },
+    sortBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: 10,
       backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    filterText: {
-      fontSize: FONT_SIZE.bodySmall,
-      fontWeight: '500',
-      color: colors.textPrimary,
+    sortIcon: {
+      fontSize: 20,
+    },
+    sortBadge: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.needs,
+      borderWidth: 1,
+      borderColor: colors.card,
+    },
+    filterStrip: {
+      paddingVertical: SPACING.xs,
+    },
+    filterScroll: {
+      paddingHorizontal: SPACING.lg,
+      alignItems: 'center',
+    },
+    clearAll: {
+      paddingHorizontal: SPACING.md,
+      paddingVertical: 8,
+      marginLeft: SPACING.xs,
+    },
+    clearAllText: {
+      fontSize: FONT_SIZE.caption,
+      color: colors.needs,
+      fontWeight: '600',
     },
     listContent: {
       paddingHorizontal: SPACING.lg,
@@ -197,6 +266,7 @@ const createStyles = (colors: any) =>
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: SPACING.xl,
+      marginTop: 40,
     },
     emptyIcon: {
       fontSize: 48,
@@ -213,5 +283,17 @@ const createStyles = (colors: any) =>
       color: colors.textSecondary,
       textAlign: 'center',
       lineHeight: 22,
+    },
+    clearBtn: {
+      marginTop: SPACING.lg,
+      paddingHorizontal: SPACING.xl,
+      paddingVertical: SPACING.md,
+      backgroundColor: colors.needs,
+      borderRadius: 10,
+    },
+    clearBtnText: {
+      color: '#fff',
+      fontWeight: '600',
+      fontSize: 16,
     },
   });

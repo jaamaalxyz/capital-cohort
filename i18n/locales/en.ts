@@ -34,6 +34,10 @@ export default {
     addFirstExpense: 'Add your first expense\nfrom the Home screen',
     deleteTitle: 'Delete Expense',
     deleteMessage: 'Are you sure you want to delete this expense?',
+    searchPlaceholder: 'Search expenses...',
+    clearFilters: 'Clear All Filters',
+    noMatches: 'No matches found',
+    adjustFilters: 'Try adjusting your search or filters.',
   },
 
   // Settings Screen
@@ -78,6 +82,9 @@ export default {
     allowLocation: 'Allow Location Access',
     locating: 'Locating...',
     noLocation: 'No location selected',
+    recurring: 'RECURRING EXPENSES',
+    manageRecurring: 'Manage Recurring Expenses',
+    recurringDesc: 'Auto-log monthly bills & subscriptions',
   },
 
   // Onboarding
@@ -147,5 +154,22 @@ export default {
     title: 'Page Not Found',
     subtitle: "The page you're looking for doesn't exist.",
     goHome: 'Go to Home',
+  },
+
+  // Recurring Expenses
+  recurring: {
+    title: 'Recurring',
+    noRecurring: 'No recurring expenses',
+    addFirstRecurring:
+      'Add recurring templates to auto-log monthly expenses like rent or subscriptions.',
+    deleteTitle: 'Delete Recurring',
+    deleteMessage:
+      'Remove this recurring expense template? Past expenses will not be deleted.',
+    addTitle: 'Add Recurring',
+    editTitle: 'Edit Recurring',
+    dayOfMonth: 'DAY OF MONTH',
+    activeLabel: 'Active',
+    inactiveLabel: 'Inactive',
+    saveTemplate: 'Save Template',
   },
 } as const;
