@@ -6,9 +6,6 @@ import { BudgetProvider, useBudget } from '../../context/BudgetContext';
 import { Expense } from '../../types';
 import { getCurrentMonth } from '../../utils/formatters';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 const makeExpense = (overrides: Partial<Expense> = {}): Expense => ({
   id: 'exp-1',
   amount: 5000,
@@ -23,7 +20,6 @@ interface ConsumerProps {
   onReady?: (ctx: ReturnType<typeof useBudget>) => void;
 }
 
-/** Exposes context values via testIDs for assertions */
 const ContextConsumer: React.FC<ConsumerProps> = ({ onReady }) => {
   const ctx = useBudget();
   const calledRef = React.useRef(false);
@@ -53,21 +49,18 @@ const renderWithProvider = (props?: ConsumerProps) =>
   render(
     <BudgetProvider>
       <ContextConsumer {...props} />
-    </BudgetProvider>
+    </BudgetProvider>,
   );
 
 beforeEach(async () => {
   await AsyncStorage.clear();
 });
 
-// ---------------------------------------------------------------------------
-// Initial state
-// ---------------------------------------------------------------------------
 describe('BudgetContext — initial state', () => {
   it('starts with zero income', async () => {
     const { getByTestId } = renderWithProvider();
     await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
+      expect(getByTestId('loading').props.children).toBe('false'),
     );
     expect(getByTestId('income').props.children).toBe(0);
   });
@@ -75,66 +68,78 @@ describe('BudgetContext — initial state', () => {
   it('starts with empty expenses', async () => {
     const { getByTestId } = renderWithProvider();
     await waitFor(() =>
-      expect(getByTestId('loading').props.children).toBe('false')
+      expect(getByTestId('loading').props.children).toBe('false'),
     );
     expect(getByTestId('expense-count').props.children).toBe(0);
   });
 });
 
-// ---------------------------------------------------------------------------
-// setIncome
-// ---------------------------------------------------------------------------
 describe('BudgetContext — setIncome', () => {
   it('updates monthlyIncome in state', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
     const { getByTestId } = renderWithProvider({
-      onReady: (c) => { ctx = c; },
+      onReady: (c) => {
+        ctx = c;
+      },
     });
 
-    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
-    act(() => { ctx!.setIncome(200000); });
-    await waitFor(() => expect(getByTestId('income').props.children).toBe(200000));
+    await waitFor(() =>
+      expect(getByTestId('loading').props.children).toBe('false'),
+    );
+    act(() => {
+      ctx!.setIncome(200000);
+    });
+    await waitFor(() =>
+      expect(getByTestId('income').props.children).toBe(200000),
+    );
   });
 });
 
-// ---------------------------------------------------------------------------
-// addExpense
-// ---------------------------------------------------------------------------
 describe('BudgetContext — addExpense', () => {
   it('adds an expense to the expenses array', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
     const { getByTestId } = renderWithProvider({
-      onReady: (c) => { ctx = c; },
+      onReady: (c) => {
+        ctx = c;
+      },
     });
 
-    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
-    act(() => { ctx!.addExpense(makeExpense()); });
-    await waitFor(() => expect(getByTestId('expense-count').props.children).toBe(1));
+    await waitFor(() =>
+      expect(getByTestId('loading').props.children).toBe('false'),
+    );
+    act(() => {
+      ctx!.addExpense(makeExpense());
+    });
+    await waitFor(() =>
+      expect(getByTestId('expense-count').props.children).toBe(1),
+    );
   });
 });
 
-// ---------------------------------------------------------------------------
-// setLocation
-// ---------------------------------------------------------------------------
 describe('BudgetContext — setLocation', () => {
   it('updates location in state', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
     const { getByTestId } = renderWithProvider({
-      onReady: (c) => { ctx = c; },
+      onReady: (c) => {
+        ctx = c;
+      },
     });
 
-    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+    await waitFor(() =>
+      expect(getByTestId('loading').props.children).toBe('false'),
+    );
 
     const loc = { latitude: 10, longitude: 20, country: 'TestLand' };
-    act(() => { ctx!.setLocation(loc); });
+    act(() => {
+      ctx!.setLocation(loc);
+    });
 
-    await waitFor(() => expect(getByTestId('location').props.children).toBe(JSON.stringify(loc)));
+    await waitFor(() =>
+      expect(getByTestId('location').props.children).toBe(JSON.stringify(loc)),
+    );
   });
 });
 
-// ---------------------------------------------------------------------------
-// Recurring Templates
-// ---------------------------------------------------------------------------
 describe('BudgetContext — Recurring Templates', () => {
   const makeTemplate = (id = 't1') => ({
     id,
@@ -149,41 +154,56 @@ describe('BudgetContext — Recurring Templates', () => {
   it('adds, updates, and deletes recurring templates', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
     const { getByTestId } = renderWithProvider({
-      onReady: (c) => { ctx = c; },
+      onReady: (c) => {
+        ctx = c;
+      },
     });
 
-    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+    await waitFor(() =>
+      expect(getByTestId('loading').props.children).toBe('false'),
+    );
 
-    // Add
-    act(() => { ctx!.addRecurringTemplate(makeTemplate('t1')); });
-    await waitFor(() => expect(getByTestId('template-count').props.children).toBe(1));
+    act(() => {
+      ctx!.addRecurringTemplate(makeTemplate('t1'));
+    });
+    await waitFor(() =>
+      expect(getByTestId('template-count').props.children).toBe(1),
+    );
 
-    // Delete
-    act(() => { ctx!.deleteRecurringTemplate('t1'); });
-    await waitFor(() => expect(getByTestId('template-count').props.children).toBe(0));
+    act(() => {
+      ctx!.deleteRecurringTemplate('t1');
+    });
+    await waitFor(() =>
+      expect(getByTestId('template-count').props.children).toBe(0),
+    );
   });
 });
 
-// ---------------------------------------------------------------------------
-// resetAll
-// ---------------------------------------------------------------------------
 describe('BudgetContext — resetAll', () => {
   it('clears all data', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
     const { getByTestId } = renderWithProvider({
-      onReady: (c) => { ctx = c; },
+      onReady: (c) => {
+        ctx = c;
+      },
     });
 
-    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+    await waitFor(() =>
+      expect(getByTestId('loading').props.children).toBe('false'),
+    );
 
     act(() => {
       ctx!.setIncome(1000);
       ctx!.addExpense(makeExpense());
     });
-    
-    await waitFor(() => expect(getByTestId('expense-count').props.children).toBe(1));
 
-    await act(async () => { await ctx!.resetAll(); });
+    await waitFor(() =>
+      expect(getByTestId('expense-count').props.children).toBe(1),
+    );
+
+    await act(async () => {
+      await ctx!.resetAll();
+    });
 
     await waitFor(() => {
       expect(getByTestId('income').props.children).toBe(0);
@@ -193,21 +213,34 @@ describe('BudgetContext — resetAll', () => {
 
   it('hits more branches in BudgetContext', async () => {
     let ctx: ReturnType<typeof useBudget> | null = null;
-    const { getByTestId, rerender } = renderWithProvider({ onReady: (c) => { ctx = c; } });
-    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
-    
-    // Line 154: With address
-    act(() => { ctx!.setLocation({ latitude: 1, longitude: 2, address: 'Somewhere' }); });
-    await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
-    
-    // Line 101: State comparison (will happen on next render/action)
-    act(() => { ctx!.setIncome(ctx!.state.monthlyIncome); });
+    const { getByTestId, rerender } = renderWithProvider({
+      onReady: (c) => {
+        ctx = c;
+      },
+    });
+    await waitFor(() =>
+      expect(getByTestId('loading').props.children).toBe('false'),
+    );
+
+    act(() => {
+      ctx!.setLocation({ latitude: 1, longitude: 2, address: 'Somewhere' });
+    });
+    await waitFor(() =>
+      expect(getByTestId('loading').props.children).toBe('false'),
+    );
+
+    act(() => {
+      ctx!.setIncome(ctx!.state.monthlyIncome);
+    });
   });
 });
 
 describe('useBudget wrapper', () => {
   it('throws error outside provider', () => {
-    const BadConsumer = () => { useBudget(); return null; };
+    const BadConsumer = () => {
+      useBudget();
+      return null;
+    };
     jest.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<BadConsumer />)).toThrow();
   });

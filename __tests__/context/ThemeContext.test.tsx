@@ -20,7 +20,7 @@ const renderWithProvider = () =>
   render(
     <ThemeProvider>
       <ThemeConsumer />
-    </ThemeProvider>
+    </ThemeProvider>,
   );
 
 beforeEach(async () => {
@@ -36,14 +36,14 @@ describe('ThemeProvider — initial state', () => {
   it('defaults to "auto" mode when no saved theme', async () => {
     const { getByTestId } = renderWithProvider();
     await waitFor(() =>
-      expect(getByTestId('theme-mode').props.children).toBe('auto')
+      expect(getByTestId('theme-mode').props.children).toBe('auto'),
     );
   });
 
   it('provides a colors object', async () => {
     const { getByTestId } = renderWithProvider();
     await waitFor(() =>
-      expect(getByTestId('has-colors').props.children).toBe('yes')
+      expect(getByTestId('has-colors').props.children).toBe('yes'),
     );
   });
 
@@ -61,7 +61,7 @@ describe('ThemeProvider — saved theme', () => {
     await AsyncStorage.setItem('@budget_theme', 'dark');
     const { getByTestId } = renderWithProvider();
     await waitFor(() =>
-      expect(getByTestId('theme-mode').props.children).toBe('dark')
+      expect(getByTestId('theme-mode').props.children).toBe('dark'),
     );
   });
 
@@ -69,7 +69,7 @@ describe('ThemeProvider — saved theme', () => {
     await AsyncStorage.setItem('@budget_theme', 'light');
     const { getByTestId } = renderWithProvider();
     await waitFor(() =>
-      expect(getByTestId('theme-mode').props.children).toBe('light')
+      expect(getByTestId('theme-mode').props.children).toBe('light'),
     );
   });
 });
@@ -86,7 +86,7 @@ describe('ThemeProvider — setThemeMode', () => {
     const { getByTestId } = render(
       <ThemeProvider>
         <Capture />
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     await waitFor(() => expect(getByTestId('mode')).toBeTruthy());
@@ -96,7 +96,7 @@ describe('ThemeProvider — setThemeMode', () => {
     });
 
     await waitFor(() =>
-      expect(getByTestId('mode').props.children).toBe('dark')
+      expect(getByTestId('mode').props.children).toBe('dark'),
     );
 
     const stored = await AsyncStorage.getItem('@budget_theme');
@@ -112,7 +112,7 @@ describe('useTheme', () => {
     };
     jest.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<BadConsumer />)).toThrow(
-      'useTheme must be used within a ThemeProvider'
+      'useTheme must be used within a ThemeProvider',
     );
     jest.restoreAllMocks();
   });

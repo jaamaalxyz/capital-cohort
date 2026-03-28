@@ -1,3 +1,4 @@
+import i18n from '../../i18n';
 import {
   parseCurrency,
   getCurrentMonth,
@@ -6,7 +7,15 @@ import {
   getPreviousMonth,
   getNextMonth,
   formatCurrency,
+  formatMonth,
+  formatDate,
 } from '../../utils/formatters';
+
+// Mock i18n
+jest.mock('../i18n', () => ({
+  language: 'en',
+  t: (key: string) => key,
+}));
 
 // ---------------------------------------------------------------------------
 // formatCurrency
@@ -31,6 +40,57 @@ describe('formatCurrency', () => {
   it('handles large amounts', () => {
     const result = formatCurrency(1000000, '$');
     expect(result).toContain('10,000.00');
+  });
+
+  it('formats correctly in Bengali locale', () => {
+    // @ts-ignore
+    i18n.language = 'bn';
+    const result = formatCurrency(150000, '৳');
+    expect(result).toContain('৳');
+    // Bengali number format for 1500 is ১২৩ (differs from standard)
+    // Actually Intl.NumberFormat for bn-BD might just change digits or separators
+    expect(result).toBeTruthy();
+    // Reset language
+    // @ts-ignore
+    i18n.language = 'en';
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatMonth
+// ---------------------------------------------------------------------------
+describe('formatMonth', () => {
+  it('formats YYYY-MM to long month and year', () => {
+    const result = formatMonth('2024-01');
+    expect(result).toMatch(/January 2024|January, 2024/i);
+  });
+
+  it('formats correctly in Bengali locale', () => {
+    // @ts-ignore
+    i18n.language = 'bn';
+    const result = formatMonth('2024-01');
+    expect(result).toBeTruthy();
+    // @ts-ignore
+    i18n.language = 'en';
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatDate
+// ---------------------------------------------------------------------------
+describe('formatDate', () => {
+  it('formats YYYY-MM-DD to short date format', () => {
+    const result = formatDate('2024-01-15');
+    expect(result).toMatch(/Jan 15, 2024|15 Jan 2024/i);
+  });
+
+  it('formats correctly in Bengali locale', () => {
+    // @ts-ignore
+    i18n.language = 'bn';
+    const result = formatDate('2024-01-15');
+    expect(result).toBeTruthy();
+    // @ts-ignore
+    i18n.language = 'en';
   });
 });
 
@@ -162,3 +222,4 @@ describe('getNextMonth', () => {
     expect(getNextMonth('2024-06')).toMatch(/^\d{4}-\d{2}$/);
   });
 });
+

@@ -470,6 +470,7 @@ export default function SettingsScreen() {
               ]}
               onPress={handleGetLocation}
               disabled={isLocating}
+              testID="location-btn"
             >
               <View style={styles.currencyDisplayLeft}>
                 {state.location ? (
@@ -618,6 +619,7 @@ export default function SettingsScreen() {
                 pressed && styles.resetButtonPressed,
               ]}
               onPress={handleReset}
+              testID="reset-all-btn"
             >
               <Text style={styles.resetButtonText}>
                 {t('settings.resetAllData')}

@@ -3,7 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { RecurringItem } from '../../components/RecurringItem';
 import { RecurringTemplate } from '../../types';
 
-// Mock ThemeContext
 jest.mock('../../context/ThemeContext', () => ({
   useTheme: () => ({
     colors: require('../../constants/theme').LIGHT_COLORS,
@@ -11,7 +10,9 @@ jest.mock('../../context/ThemeContext', () => ({
   }),
 }));
 
-const makeTemplate = (overrides: Partial<RecurringTemplate> = {}): RecurringTemplate => ({
+const makeTemplate = (
+  overrides: Partial<RecurringTemplate> = {},
+): RecurringTemplate => ({
   id: 'tmpl-1',
   amount: 50000,
   description: 'Rent',
@@ -25,28 +26,44 @@ const makeTemplate = (overrides: Partial<RecurringTemplate> = {}): RecurringTemp
 describe('RecurringItem', () => {
   it('renders template description', () => {
     const { getByText } = render(
-      <RecurringItem template={makeTemplate()} onEdit={jest.fn()} onDelete={jest.fn()} />
+      <RecurringItem
+        template={makeTemplate()}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+      />,
     );
     expect(getByText('Rent')).toBeTruthy();
   });
 
   it('renders formatted amount', () => {
     const { getByTestId } = render(
-      <RecurringItem template={makeTemplate({ amount: 50000 })} onEdit={jest.fn()} onDelete={jest.fn()} />
+      <RecurringItem
+        template={makeTemplate({ amount: 50000 })}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+      />,
     );
     expect(getByTestId('recurring-amount')).toBeTruthy();
   });
 
   it('renders day of month', () => {
     const { getByTestId } = render(
-      <RecurringItem template={makeTemplate({ dayOfMonth: 15 })} onEdit={jest.fn()} onDelete={jest.fn()} />
+      <RecurringItem
+        template={makeTemplate({ dayOfMonth: 15 })}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+      />,
     );
     expect(getByTestId('recurring-day')).toBeTruthy();
   });
 
   it('renders category icon', () => {
     const { getByTestId } = render(
-      <RecurringItem template={makeTemplate({ category: 'needs' })} onEdit={jest.fn()} onDelete={jest.fn()} />
+      <RecurringItem
+        template={makeTemplate({ category: 'needs' })}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+      />,
     );
     expect(getByTestId('recurring-icon')).toBeTruthy();
   });
@@ -54,7 +71,11 @@ describe('RecurringItem', () => {
   it('calls onEdit when edit button pressed', () => {
     const onEdit = jest.fn();
     const { getByTestId } = render(
-      <RecurringItem template={makeTemplate()} onEdit={onEdit} onDelete={jest.fn()} />
+      <RecurringItem
+        template={makeTemplate()}
+        onEdit={onEdit}
+        onDelete={jest.fn()}
+      />,
     );
     fireEvent.press(getByTestId('recurring-edit-btn'));
     expect(onEdit).toHaveBeenCalledWith(makeTemplate());
@@ -63,7 +84,11 @@ describe('RecurringItem', () => {
   it('calls onDelete when delete button pressed', () => {
     const onDelete = jest.fn();
     const { getByTestId } = render(
-      <RecurringItem template={makeTemplate({ id: 'tmpl-1' })} onEdit={jest.fn()} onDelete={onDelete} />
+      <RecurringItem
+        template={makeTemplate({ id: 'tmpl-1' })}
+        onEdit={jest.fn()}
+        onDelete={onDelete}
+      />,
     );
     fireEvent.press(getByTestId('recurring-delete-btn'));
     expect(onDelete).toHaveBeenCalledWith('tmpl-1');
@@ -71,14 +96,22 @@ describe('RecurringItem', () => {
 
   it('shows inactive badge when isActive is false', () => {
     const { getByTestId } = render(
-      <RecurringItem template={makeTemplate({ isActive: false })} onEdit={jest.fn()} onDelete={jest.fn()} />
+      <RecurringItem
+        template={makeTemplate({ isActive: false })}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+      />,
     );
     expect(getByTestId('recurring-inactive-badge')).toBeTruthy();
   });
 
   it('does not show inactive badge when isActive is true', () => {
     const { queryByTestId } = render(
-      <RecurringItem template={makeTemplate({ isActive: true })} onEdit={jest.fn()} onDelete={jest.fn()} />
+      <RecurringItem
+        template={makeTemplate({ isActive: true })}
+        onEdit={jest.fn()}
+        onDelete={jest.fn()}
+      />,
     );
     expect(queryByTestId('recurring-inactive-badge')).toBeNull();
   });
