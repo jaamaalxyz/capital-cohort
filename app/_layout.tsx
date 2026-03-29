@@ -22,9 +22,10 @@ function AppContent() {
     if (state.isLoading) return;
 
     const inOnboardingGroup = segments[0] === 'onboarding';
+    const inLegalGroup = segments[0] === '(legal)' || segments[0] === 'privacy-policy' || segments[0] === 'terms-of-use';
 
-    if (!state.onboardingCompleted && !inOnboardingGroup) {
-      // If we're not onboarded and not on the onboarding screen, go there
+    if (!state.onboardingCompleted && !inOnboardingGroup && !inLegalGroup) {
+      // If we're not onboarded and not on the onboarding/legal screens, go there
       router.replace('/onboarding');
     } else if (state.onboardingCompleted && inOnboardingGroup) {
       // If we're onboarded but still on onboarding screen, go home
